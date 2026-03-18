@@ -1,4 +1,3 @@
-import mapillary.interface as mly
 import json, os, requests
 import mercantile
 import asyncio
@@ -32,13 +31,10 @@ MAX_CONCURRENT = 20
 URL_BATCH_SIZE = 50
 # Size can be: 256, 1024, or 2048
 IMAGE_SIZE: str = "1024"
-
-
-# Login to Mapillary API
+# Verify access token
 ACCESS_TOKEN = os.getenv("MLY_TOKEN")
 if not ACCESS_TOKEN:
     raise ValueError("Mapillary access token not found. Please set MLY_TOKEN in your environment.")
-mly.set_access_token(ACCESS_TOKEN)
 
 
 # Functions
@@ -68,12 +64,12 @@ def fetch_tiles() -> list[dict]:
         try:
             r.raise_for_status()
         except requests.exceptions.HTTPError as e:
-            print(f"Failed to fetch tile {tile}: {e}")
+            print(f"Failed to fetch tile {tile}: {e}", flush=True)
             continue
         geojson = vt_bytes_to_geojson(r.content, tile.x, tile.y, tile.z, layer="image")
         features.extend(geojson["features"])
         if idx % max((total_tiles // 10), 1) == 0 or idx == total_tiles:
-            print(f"Fetched {idx}/{total_tiles} tiles")
+            print(f"Fetched {idx}/{total_tiles} tiles", flush=True)
     # Remove duplicates
     features = list({f["properties"]["id"]: f for f in features if f["geometry"]["type"] == "Point"}.values())
     
@@ -143,14 +139,14 @@ def fetch_urls(image_ids) -> dict[str, str]:
         try:
             r.raise_for_status()
         except requests.exceptions.HTTPError as e:
-            print(f"Failed to fetch URLs for batch {i}: {e}")
+            print(f"Failed to fetch URLs for batch {i}: {e}", flush=True)
             continue
         data = r.json()
         # Store the URL for each image
         for k, v in data.items():
             urls[k] = v.get(f"thumb_{IMAGE_SIZE}_url")
         if batch_idx % max((total_batches // 10), 1) == 0 or batch_idx == total_batches:
-            print(f"Fetched URL batches {batch_idx}/{total_batches}")
+            print(f"Fetched URL batches {batch_idx}/{total_batches}", flush=True)
     return urls
 
 async def download_image(session, sem, item, url, progress, total):
@@ -165,9 +161,9 @@ async def download_image(session, sem, item, url, progress, total):
                     progress["done"] += 1
                     # Print progress every 250 images
                     if progress["done"] % max((total//20), 1) == 0 or progress["done"] == total:
-                        print(f"Downloaded {progress['done']}/{total} images")
+                        print(f"Downloaded {progress['done']}/{total} images", flush=True)
         except Exception:
-            print(f"Failed to download image {item['id']} from {url}")
+            print(f"Failed to download image {item['id']} from {url}", flush=True)
 
 async def download_all(items, urls):
     """ Download all images concurrently """
@@ -189,19 +185,19 @@ async def download_all(items, urls):
             for item, url in downloadable_items
         ]
         await asyncio.gather(*tasks)
-    print(f"Finished: {progress['done']}/{total} images downloaded")
+    print(f"Finished: {progress['done']}/{total} images downloaded", flush=True)
 
 
 # Main function
 def main():
     features = fetch_tiles()
     selected = filter_images(features)
-    print(f"Selected {len(selected)} images out of {len(features)} candidates")
+    print(f"Selected {len(selected)} images out of {len(features)} candidates", flush=True)
     ids = [x["id"] for x in selected]
     urls = fetch_urls(ids)
-    print("Starting downloads...")
+    print("Starting downloads...", flush=True)
     asyncio.run(download_all(selected, urls))
-    print("Done.")
+    print("Done.", flush=True)
 
 if __name__ == "__main__":
     main()
