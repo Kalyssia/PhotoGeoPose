@@ -54,13 +54,27 @@ The `task1.py` script:
 - fine‑tunes the model with triplet loss and prints train/val losses per epoch.
 
 
-Dependencies for Task 2 (LightGlue)
+Dependencies for Task 2 (SuperPoint + LightGlue)
 ------------------------------------
 
 In the same environment or another one, install:
 
 ```bash
 pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
-pip install opencv-python numpy scipy matplotlib
+pip install opencv-python numpy scipy matplotlib tqdm
 pip install git+https://github.com/cvg/LightGlue.git
 ```
+
+**Configuration** (in `task2.py`):
+- `REF_IMAGE_PATH`: Path to the reference image
+- `IMAGE_DIR`: Path to the images folder (and to metadata.json)
+- `MIN_MATCHES`: Minimum feature matches required for pose estimation
+- `FOCAL_LENGTH_SCALE`: Adjustment factor for focal length estimation
+
+**Running the script:**
+
+```bash
+python task2.py
+```
+
+The script requires an `images/` folder to contain the reference image and candidate images with matching ID-based metadata in `images/metadata.json`.
