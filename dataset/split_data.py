@@ -1,3 +1,7 @@
+"""
+ Split data into train and validation sets
+"""
+
 from __future__ import annotations
 
 import json

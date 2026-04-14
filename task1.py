@@ -6,6 +6,8 @@ from tqdm import tqdm
 
 from dataset.geo_triplet_dataset import GeoTripletDataset
 
+IMAGE_DIR = "/scratch/users/agraillet/images"
+
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
@@ -26,13 +28,13 @@ transform = transforms.Compose([
 
 train_ds = GeoTripletDataset(
     annotations_path="dataset/splits/annotations_train.json",
-    image_dir="/scratch/users/agraillet/images",
+    image_dir=IMAGE_DIR,
     transform=transform,
 )
 
 val_ds = GeoTripletDataset(
     annotations_path="dataset/splits/annotations_val.json",
-    image_dir="/scratch/users/agraillet/images",
+    image_dir=IMAGE_DIR,
     transform=transform,
 )
 
@@ -46,6 +48,8 @@ optimizer = torch.optim.AdamW(
     lr=1e-4,
     weight_decay=1e-4,
 )
+
+best_val_loss = float("inf")
 
 num_epochs = 5
 
@@ -100,3 +104,17 @@ for epoch in range(num_epochs):
         f"Epoch {epoch+1}/{num_epochs} - "
         f"train_loss={avg_train_loss:.4f} val_loss={avg_val_loss:.4f}"
     )
+
+    # Save the best model (on validation loss)
+    if avg_val_loss < best_val_loss:
+        best_val_loss = avg_val_loss
+        torch.save(
+            {
+                "model_state": model.state_dict(),
+                "optimizer_state": optimizer.state_dict(),
+                "epoch": epoch + 1,
+                "val_loss": avg_val_loss,
+            },
+            "megaloc_finetuned_best.pt",
+        )
+        print(f"Saved new best model with val_loss={avg_val_loss:.4f}")
