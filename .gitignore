@@ -1,1 +1,5 @@
 /images
+/logs/*
+/outputs/*
+__pycache__/
+*.pyc

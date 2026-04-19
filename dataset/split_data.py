@@ -1,11 +1,17 @@
 """
- Split data into train and validation sets
+ Split data into train/db and validation/queries sets.
+ By seperating by sequence, we better test generalization to different routes.
+
+ Also This file prepares the dataset for training and evaluation by COPYING the relevant images 
+in separate directories for database and queries.
+
 """
 
 from __future__ import annotations
 
 import json
 import random
+import shutil
 from argparse import ArgumentParser
 from collections import defaultdict
 from pathlib import Path
@@ -116,6 +122,32 @@ def save_stats(stats: dict[str, int], output_path: Path) -> None:
         json.dump(stats, f, ensure_ascii=False, indent=2)
 
 
+def copy_split(
+    annotations_path: Path,
+    out_dir: Path,
+    image_dir: Path,
+) -> None:
+    """
+    Copies images specified in annotations JSON to the output directory.
+    
+    Args:
+        annotations_path: Path to JSON file containing annotation items with 'id' field
+        out_dir: Output directory where images will be copied
+        image_dir: Source directory containing the images
+    """
+    out_dir.mkdir(parents=True, exist_ok=True)
+    
+    with annotations_path.open("r", encoding="utf-8") as f:
+        items = json.load(f)
+    
+    for x in items:
+        src = image_dir / f"{x['id']}.jpg"
+        if src.exists():
+            dst = out_dir / f"{x['id']}.jpg"
+            if not dst.exists():
+                shutil.copy(src, dst)
+
+
 def parse_args():
     parser = ArgumentParser(
         description="Split annotations JSON into train/val by sequence_id."
@@ -143,6 +175,26 @@ def parse_args():
         type=int,
         default=42,
         help="Random seed for reproducible splits",
+    )
+
+    # Image copying arguments (optional)
+    parser.add_argument(
+        "--image-dir",
+        type=Path,
+        default=None,
+        help="Source image directory for copying images (optional)",
+    )
+    parser.add_argument(
+        "--copy-db-dir",
+        type=Path,
+        default=None,
+        help="Output directory for database images (optional)",
+    )
+    parser.add_argument(
+        "--copy-query-dir",
+        type=Path,
+        default=None,
+        help="Output directory for query images (optional)",
     )
     return parser.parse_args()
 
@@ -177,6 +229,23 @@ def main():
     save_stats(stats, args.output_dir / "split_stats.json")
 
     print(json.dumps(stats, indent=2))
+
+    # Copy images if directories are specified to do it!
+    if args.image_dir and args.copy_db_dir:
+        print("\nCopying training images to database directory...")
+        copy_split(
+            args.output_dir / "annotations_train.json",
+            args.copy_db_dir,
+            args.image_dir,
+        )
+    
+    if args.image_dir and args.copy_query_dir:
+        print("Copying validation images to query directory...")
+        copy_split(
+            args.output_dir / "annotations_val.json",
+            args.copy_query_dir,
+            args.image_dir,
+        )
 
 
 if __name__ == "__main__":
