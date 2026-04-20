@@ -9,6 +9,7 @@ from pathlib import Path
 from PIL import Image
 from torch.utils.data import Dataset
 
+from utils import angle_diff_deg, haversine_m
 
 @dataclass
 class Annotation:
@@ -52,23 +53,6 @@ class AnnotationStore:
 
     def load_image(self, index: int):
         return Image.open(self.get_image_path(index)).convert("RGB")
-
-
-
-def haversine(lat1, lon1, lat2, lon2):
-    """Calculate the great circle distance in meters between two points on the Earth."""
-    R = 6371000.0
-    phi1, phi2 = math.radians(lat1), math.radians(lat2)
-    dphi = math.radians(lat2 - lat1)
-    dlambda = math.radians(lon2 - lon1)
-    a = math.sin(dphi/2)**2 + math.cos(phi1)*math.cos(phi2)*math.sin(dlambda/2)**2
-    return 2 * R * math.asin(math.sqrt(a))
-
-def angle_diff(a, b):
-    """Calculate the smallest difference between two angles in degrees."""
-    d = abs(a - b) % 360
-    return min(d, 360 - d)
-
 
 
 
@@ -120,8 +104,8 @@ class GeoTripletDataset(Dataset):
             if cand.id == anchor.id:
                 continue
 
-            dist = haversine(anchor.lat, anchor.lon, cand.lat, cand.lon)
-            angle_delta = angle_diff(anchor.angle, cand.angle)
+            dist = haversine_m(anchor.lat, anchor.lon, cand.lat, cand.lon)
+            angle_delta = angle_diff_deg(anchor.angle, cand.angle)
 
             if dist <= self.pos_dist and angle_delta <= self.max_angle:
                 positives.append(cand)

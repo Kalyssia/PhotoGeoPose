@@ -8,8 +8,8 @@ This repository contains two main tasks:
 Below are the initialization instructions for Task 1 and Task 2.
 
 
-Setup for Task 1 (MegaLoc) and Task 2
---------------------------
+Setup for Task 1 (MegaLoc) and Task 2 (LightGlue + SuperPoint)
+--------------------------------------------------------------
 
 1. **Create the conda environment**
 
