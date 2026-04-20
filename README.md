@@ -8,7 +8,7 @@ This repository contains two main tasks:
 Below are the initialization instructions for Task 1 and Task 2.
 
 
-Setup for Task 1 (MegaLoc)
+Setup for Task 1 (MegaLoc) and Task 2
 --------------------------
 
 1. **Create the conda environment**
@@ -19,13 +19,18 @@ conda activate photogeopose
 ```
 
 2. **Install PyTorch + torchvision (GPU)**  
-Adapt the command to the CUDA version available on your cluster (see the PyTorch website). Example for CUDA 11.8:
+- For download.py, 
+```bash
+pip install requests mercantile aiohttp vt2geojson 
+```
 
+- For Task 1 (MegaLoc) and Task 2 (SuperPoint + LightGlue)
 ```bash
 pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
 pip install pillow huggingface_hub tqdm safetensors
-# For download.py
-pip install requests mercantile aiohttp vt2geojson 
+
+pip install opencv-python numpy scipy matplotlib 
+pip install git+https://github.com/cvg/LightGlue.git
 ```
 
 3. **Prepare DB/Query splits (by sequence)**
@@ -61,6 +66,15 @@ The `task1.py` script:
 - saves embeddings + metadata to `outputs/embeddings.pt`.
 
 
+5. **Run Task 2 (locally)**
+
+```bash
+python task2.py
+```
+
+The script requires an `images/` folder to contain the reference image and candidate images with matching ID-based metadata in `images/metadata.json`.
+
+
 Evaluate Task 1 Retrieval
 ------------------------
 
@@ -78,18 +92,6 @@ Example with explicit Recall@K:
 
 ```bash
 python evaluate_task1_results.py --ks 1 5 10
-```
-
-
-Dependencies for Task 2 (LightGlue)
-------------------------------------
-
-In the same environment or another one, install:
-
-```bash
-pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
-pip install opencv-python numpy scipy matplotlib
-pip install git+https://github.com/cvg/LightGlue.git
 ```
 
 Visualize Task 1 Retrieval Results
@@ -127,6 +129,7 @@ python visualize_task1_results.py --angle-threshold-deg 25
 Configuration
 -------------
 
+**Configuration** (in `task1.py`):
 Defaults are centralized in `config.py` (paths, split params, Task 1/eval/visualization defaults).
 
 Important entries include:
@@ -135,6 +138,12 @@ Important entries include:
 - `TASK1_TOPK`
 - `EVAL_KS`
 - `SPLIT_INPUT_METADATA`, `SPLIT_OUTPUT_DIR`, `SPLIT_VAL_RATIO`, `SPLIT_SEED`
+
+**Configuration** (in `task2.py`):
+- `REF_IMAGE_PATH`: Path to the reference image
+- `IMAGE_DIR`: Path to the images folder (and to metadata.json)
+- `MIN_MATCHES`: Minimum feature matches required for pose estimation
+- `FOCAL_LENGTH_SCALE`: Adjustment factor for focal length estimation
 
 
 Slurm Launchers
