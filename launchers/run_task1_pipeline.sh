@@ -21,7 +21,7 @@ python task1.py --multi-gpu --topk 5
 echo "[2/3] Generating retrieval visualizations"
 python visualize_task1_results.py
 
-# echo "[3/3] Evaluating retrieval metrics"
-# python evaluate_task1_results.py
+echo "[3/3] Evaluating retrieval metrics"
+python evaluate_task1_results.py
 
 echo "Pipeline complete."

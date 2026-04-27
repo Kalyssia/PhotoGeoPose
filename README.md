@@ -67,6 +67,58 @@ The `task1.py` script:
 - saves embeddings + metadata to `outputs/embeddings.pt`.
 
 
+How to Use `task1.py`
+---------------------
+
+The script can be run with defaults, or configured from the command line depending on your experiment.
+
+Default run:
+
+```bash
+python task1.py
+```
+
+Common options:
+- `--topk`: number of retrieved neighbors saved per query.
+- `--position-estimation-topk`: number of top neighbors used for the rank-medoid position estimate.
+- `--checkpoint`: path to a model checkpoint to load before inference.
+- `--batch-size`: inference batch size.
+- `--num-workers`: DataLoader worker count.
+- `--output`: output JSON path for retrieval results.
+- `--embeddings-output`: output path for `embeddings.pt`.
+
+Examples:
+
+```bash
+# Run retrieval with Top-5 candidates
+python task1.py --topk 5
+
+# Keep Top-10 retrieval but estimate position from Top-5 only
+python task1.py --topk 10 --position-estimation-topk 5
+
+# Use a fine-tuned checkpoint
+python task1.py --checkpoint outputs/my_checkpoint.pth
+
+# Change output files
+python task1.py \
+  --output outputs/topk_results_exp1.json \
+  --embeddings-output outputs/embeddings_exp1.pt
+```
+
+Expected result format (per query) in the JSON output:
+
+```json
+{
+  "query_id": {
+    "topk": [{"id": 123, "score": 0.91}],
+    "position_estimates": {
+      "rank_medoid_top5": {"lat": 50.8, "lon": 4.35}
+    }
+  }
+}
+```
+
+
 5. **Run Task 2 (locally)**
 
 ```bash
