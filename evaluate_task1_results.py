@@ -7,7 +7,7 @@ from utils import angle_diff_deg, haversine_m, load_embeddings_metadata, load_to
 
 
 
-def is_correct_match(qm, dm, distance_thresh_m, angle_thresh_deg=None, require_same_sequence=False):
+def is_correct_match(qm, dm, distance_thresh_m, angle_thresh_deg=None):
     """
     Determine if a retrieved candidate is a correct match based on distance 
     (and optional angle/sequence criteria).
@@ -17,7 +17,6 @@ def is_correct_match(qm, dm, distance_thresh_m, angle_thresh_deg=None, require_s
         dm: Database metadata dict with keys 'lat', 'lon', 'angle'
         distance_thresh_m: Distance threshold in meters
         angle_thresh_deg: Angle difference threshold in degrees
-        require_same_sequence: If True, also require that query and db items have the same sequence
     """
     dist = haversine_m(qm["lat"], qm["lon"], dm["lat"], dm["lon"])
     if dist > distance_thresh_m:
@@ -28,13 +27,10 @@ def is_correct_match(qm, dm, distance_thresh_m, angle_thresh_deg=None, require_s
     if angle_thresh_deg is not None and angle_gap > angle_thresh_deg:
         return False, dist, angle_gap
 
-    if require_same_sequence and qm.get("sequence_id") != dm.get("sequence_id"):
-        return False, dist, angle_gap
-
     return True, dist, angle_gap
 
 
-def evaluate(topk_results, db_meta, query_meta, ks, distance_thresh_m, angle_thresh_deg=None, require_same_sequence=False):
+def evaluate(topk_results, db_meta, query_meta, ks, distance_thresh_m, angle_thresh_deg=None):
     """
     Evaluate retrieval results and compute Recall@K metrics.
 
@@ -46,7 +42,6 @@ def evaluate(topk_results, db_meta, query_meta, ks, distance_thresh_m, angle_thr
         distance_thresh_m: Distance threshold in meters for a correct match
 
         angle_thresh_deg: Optional angle difference threshold in degrees for a correct match
-        require_same_sequence: If True, also require that query and db items have the same sequence 
     """
     query_ids = sorted(topk_results.keys())
     total = len(query_ids)
@@ -62,6 +57,8 @@ def evaluate(topk_results, db_meta, query_meta, ks, distance_thresh_m, angle_thr
             continue
 
         qm = query_meta[qid]
+        topk_items = topk_results[qid]
+
         query_result = {
             "query_id": qid,
             "gt_lat": qm["lat"],
@@ -73,7 +70,7 @@ def evaluate(topk_results, db_meta, query_meta, ks, distance_thresh_m, angle_thr
         ranked_correct = []
 
         # iterate through retrieved data candidates for this query and evaluate their correctness
-        for rank, item in enumerate(topk_results[qid], start=1):
+        for rank, item in enumerate(topk_items, start=1):
             rid = int(item["id"])
             score = float(item["score"])
 
@@ -97,7 +94,6 @@ def evaluate(topk_results, db_meta, query_meta, ks, distance_thresh_m, angle_thr
                 dm=dm,
                 distance_thresh_m=distance_thresh_m,
                 angle_thresh_deg=angle_thresh_deg,
-                require_same_sequence=require_same_sequence,
             )
             ranked_correct.append(status)
 
@@ -134,8 +130,6 @@ def evaluate(topk_results, db_meta, query_meta, ks, distance_thresh_m, angle_thr
     metrics["distance_threshold_m"] = distance_thresh_m
     if angle_thresh_deg is not None:
         metrics["angle_threshold_deg"] = angle_thresh_deg
-    if require_same_sequence:
-        metrics["require_same_sequence"] = True
 
     return metrics, details
 
@@ -152,11 +146,6 @@ def main():
         type=float,
         default=config.EVAL_ANGLE_THRESHOLD_DEG,
         help="Optional angle threshold (degrees) for a positive match",
-    )
-    parser.add_argument(
-        "--require-same-sequence",
-        action="store_true",
-        help="If set, positive match also requires same sequence_id",
     )
     parser.add_argument("--output", default=config.EVAL_OUTPUT, help="Where to save metrics JSON")
     parser.add_argument(
@@ -196,7 +185,6 @@ def main():
         ks=sorted(set(args.ks)),
         distance_thresh_m=args.distance_threshold_m,
         angle_thresh_deg=args.angle_threshold_deg,
-        require_same_sequence=args.require_same_sequence,
     )
 
     # save metrics and details to JSON files
@@ -211,6 +199,7 @@ def main():
         json.dump(details, f, indent=2)
 
     print(json.dumps(metrics, indent=2))
+
     print(f"Saved metrics to {output_path}")
     print(f"Saved per-query details to {details_output_path}")
 

@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 """
  Split data into train/db and validation/queries sets.
  By seperating by sequence, we better test generalization to different routes.

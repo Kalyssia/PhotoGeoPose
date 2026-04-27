@@ -2,8 +2,6 @@ import json
 import math
 from pathlib import Path
 
-from dataset.geo_triplet_dataset import AnnotationStore
-
 
 def haversine_m(lat1, lon1, lat2, lon2):
     """Great-circle distance between two coordinates in meters."""
@@ -23,10 +21,56 @@ def angle_diff_deg(a, b):
 
 
 def load_topk_results(results_path):
-    """Load retrieval results JSON and normalize query ids as ints."""
+    """Load retrieval results JSON and normalize query ids as ints.
+
+    Supports two formats:
+    - legacy: {query_id: [{id, score}, ...]}
+    - enriched: {query_id: {"topk": [{id, score}, ...], ...}}
+    """
     with Path(results_path).open("r", encoding="utf-8") as f:
         raw = json.load(f)
-    return {int(k): v for k, v in raw.items()}
+    normalized = {}
+    for k, v in raw.items():
+        qid = int(k)
+        if isinstance(v, dict) and "topk" in v:
+            normalized[qid] = v["topk"]
+        else:
+            normalized[qid] = v
+    return normalized
+
+
+def load_retrieval_results(results_path):
+    """Load retrieval JSON and return a normalized enriched structure.
+
+    Output format:
+    {
+      query_id: {
+        "topk": [{"id": int, "score": float}, ...],
+        "position_estimates": {method: {"lat": float, "lon": float} | None}
+      }
+    }
+    """
+    with Path(results_path).open("r", encoding="utf-8") as f:
+        raw = json.load(f)
+
+    normalized = {}
+    for k, v in raw.items():
+        qid = int(k)
+
+        if isinstance(v, dict):
+            topk = v.get("topk", [])
+            pos = v.get("position_estimates", {})
+        else:
+            # Legacy format: value is directly the top-k list.
+            topk = v
+            pos = {}
+
+        normalized[qid] = {
+            "topk": topk,
+            "position_estimates": pos,
+        }
+
+    return normalized
 
 
 def load_embeddings_metadata(embeddings_path):
@@ -41,6 +85,8 @@ def load_embeddings_metadata(embeddings_path):
 
 def load_annotation_metadata(annotations_path, image_dir):
     """Load annotation metadata and index it by image id."""
+    from dataset.geo_triplet_dataset import AnnotationStore
+
     store = AnnotationStore(annotations_path, image_dir)
     return {
         ann.id: {

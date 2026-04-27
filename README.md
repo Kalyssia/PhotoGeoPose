@@ -62,6 +62,7 @@ The `task1.py` script:
 - loads the pretrained MegaLoc model,
 - computes normalized embeddings for DB and query splits,
 - retrieves top-k matches with cosine similarity,
+- estimates one query position with a Top-5 rank-medoid strategy (`position_estimates.rank_medoid_top5` by default),
 - saves retrieval results to `outputs/topk_results.json`,
 - saves embeddings + metadata to `outputs/embeddings.pt`.
 
@@ -99,7 +100,7 @@ Visualize Task 1 Retrieval Results
 
 After running `task1.py`, you can generate side-by-side figures showing:
 - the query image,
-- the 5 retrieved images,
+- the top-k retrieved images found in your results file,
 - a proximity label (`CLOSE` / `NOT CLOSE`) based on geographic distance.
 
 Default command:
