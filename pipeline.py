@@ -228,19 +228,20 @@ def run_user_mode(args, device, extractor, matcher):
         model.load_state_dict(state_dict, strict=False)
         print(f"Loaded checkpoint: {args.checkpoint}")
 
-    # Load database metadata
-    db_meta = load_annotation_metadata(args.annotations_db, args.image_dir)
-
-    # Compute database embeddings (Task 1)
-    print("\nComputing database embeddings...")
-    db_ids, db_emb = compute_embeddings(
-        model=model,
-        device=device,
-        annotations_path=args.annotations_db,
-        image_dir=args.image_dir,
-        batch_size=args.batch_size,
-        num_workers=args.num_workers,
-    )
+    # Load database embeddings from saved file
+    embeddings_path = Path(args.output_dir) / "embeddings.pt"
+    if not embeddings_path.exists():
+        raise FileNotFoundError(
+            f"Database embeddings not found at {embeddings_path}. "
+            "Please run the full pipeline first: python pipeline.py --topk 100"
+        )
+    
+    print(f"\nLoading database embeddings from {embeddings_path}...")
+    checkpoint = torch.load(str(embeddings_path), map_location=device)
+    db_ids = checkpoint["database"]["ids"]
+    db_emb = checkpoint["database"]["embeddings"].to(device)
+    db_meta = checkpoint.get("db_meta", {})
+    print(f"Loaded {len(db_ids)} database embeddings")
 
     # Process each user image independently
     results = {}
@@ -264,7 +265,7 @@ def run_user_mode(args, device, extractor, matcher):
             db_ids=db_ids,
             db_emb=db_emb,
             q_ids=q_ids,
-            q_emb=q_emb,
+            q_emb=q_emb.to(device),
             db_meta=db_meta,
             topk=args.topk,
             estimate_topk=args.position_estimation_topk,

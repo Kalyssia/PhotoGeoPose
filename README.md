@@ -48,7 +48,7 @@ Run the complete pipeline with ground truth evaluation:
 
 ```bash
 # Standard evaluation (recommended: topk=100 for Task 2)
-python pipeline.py --topk 100
+python pipeline.py
 
 # Custom settings
 python pipeline.py \
