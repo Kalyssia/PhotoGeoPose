@@ -1,215 +1,198 @@
-PhotoGeoPose
-===========
+# PhotoGeoPose
 
-This repository contains two main tasks:
-- **Task 1**: image retrieval with MegaLoc (inference, top-k retrieval, visualization, evaluation).
-- **Task 2**: angle estimation with LightGlue / SuperPoint.
+A computer vision pipeline for **image-based localization** combining:
 
-Below are the initialization instructions for Task 1 and Task 2.
+- **Task 1**: Image retrieval using [MegaLoc](https://github.com/gmberton/MegaLoc) for geographic position estimation
+- **Task 2**: Angle estimation using [LightGlue](https://github.com/cvg/LightGlue) + SuperPoint for orientation estimation
 
-
-Setup for Task 1 (MegaLoc) and Task 2 (LightGlue + SuperPoint)
---------------------------------------------------------------
-
-1. **Create the conda environment**
+## Setup
 
 ```bash
+# 1. Create conda environment
 conda create -n photogeopose python=3.11 -y
 conda activate photogeopose
-```
 
-2. **Install PyTorch + torchvision (GPU)**  
-- For download.py, 
-```bash
-pip install requests mercantile aiohttp vt2geojson 
-```
-
-- For Task 1 (MegaLoc) and Task 2 (SuperPoint + LightGlue)
-```bash
+# 2. Install dependencies
 pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
-pip install pillow huggingface_hub tqdm safetensors
-
-pip install opencv-python numpy scipy matplotlib 
+pip install pillow huggingface_hub tqdm safetensors pyyaml opencv-python numpy scipy matplotlib
 pip install git+https://github.com/cvg/LightGlue.git
+pip install requests mercantile aiohttp vt2geojson
 ```
 
-3. **Prepare DB/Query splits (by sequence)**
+## Complete Workflow
 
-From the project root:
+### 1. Dataset Creation
+
+Download images and split into database/query sets:
 
 ```bash
+# Download Brussels images (default)
+python dataset/download.py --city brussels
+
+# Or download Liege images
+python dataset/download.py --city liege
+
+# Split data into train (database) and validation (query) sets
 python dataset/split_data.py
 ```
 
 This creates:
-- `dataset/splits/annotations_train.json` (used as database split)
-- `dataset/splits/annotations_val.json` (used as query split)
+
+- `dataset/splits/annotations_train.json` (database split)
+- `dataset/splits/annotations_val.json` (query split)
 - `dataset/splits/split_stats.json`
 
-Note: split is done at `sequence_id` level to avoid leakage between DB and query routes.
+### 2. Full Pipeline Evaluation (with metadata)
 
-4. **Run Task 1 retrieval (locally)**
-
-From the project root:
+Run the complete pipeline with ground truth evaluation:
 
 ```bash
-conda activate photogeopose
-cd /your/path/PhotoGeoPose
-python task1.py
+# Standard evaluation (recommended: topk=100 for Task 2)
+python pipeline.py --topk 100
+
+# Custom settings
+python pipeline.py \
+  --topk 100 \
+  --position-estimation-topk 5 \
+  --min-matches 100 \
+  --city brussels
 ```
 
-The `task1.py` script:
-- loads the pretrained MegaLoc model,
-- computes normalized embeddings for DB and query splits,
-- retrieves top-k matches with cosine similarity,
-- estimates one query position with a Top-5 rank-medoid strategy (`position_estimates.rank_medoid_top5` by default),
-- saves retrieval results to `outputs/topk_results.json`,
-- saves embeddings + metadata to `outputs/embeddings.pt`.
+**Outputs:**
 
+- `outputs/task1_results.json` - Task 1 retrieval results
+- `outputs/task2_results.json` - Task 2 angle estimates per query
+- `outputs/pipeline_evaluation.yaml` - Combined evaluation report with metrics
 
-How to Use `task1.py`
----------------------
+### 3. User Mode (personal images without metadata)
 
-The script can be run with defaults, or configured from the command line depending on your experiment.
-
-Default run:
+Process your own images (no ground truth required):
 
 ```bash
-python task1.py
+# Place images in user_images/ folder, then run:
+python pipeline.py --user-images --user-image-dir user_images/
+
+# With custom settings
+python pipeline.py \
+  --user-images \
+  --user-image-dir my_photos/ \
+  --topk 100 \
+  --min-matches 100 \
+  --city brussels
 ```
 
-Common options:
-- `--topk`: number of retrieved neighbors saved per query.
-- `--position-estimation-topk`: number of top neighbors used for the rank-medoid position estimate.
-- `--checkpoint`: path to a model checkpoint to load before inference.
-- `--batch-size`: inference batch size.
-- `--num-workers`: DataLoader worker count.
-- `--output`: output JSON path for retrieval results.
-- `--embeddings-output`: output path for `embeddings.pt`.
+**Outputs:**
 
-Examples:
+- `outputs/user_results.json` - Position and angle estimates for each image
+- `outputs/user_results_summary.yaml` - Simplified summary format
+
+**Visualize on map:**
 
 ```bash
-# Run retrieval with Top-5 candidates
-python task1.py --topk 5
+# Convert to GeoJSON for map visualization
+python visualize_on_map.py \
+  --input outputs/user_results_summary.yaml \
+  --output results.geojson
 
-# Keep Top-10 retrieval but estimate position from Top-5 only
-python task1.py --topk 10 --position-estimation-topk 5
-
-# Use a fine-tuned checkpoint
-python task1.py --checkpoint outputs/my_checkpoint.pth
-
-# Change output files
-python task1.py \
-  --output outputs/topk_results_exp1.json \
-  --embeddings-output outputs/embeddings_exp1.pt
+# View online at https://geojson.io (drag and drop results.geojson)
 ```
 
-Expected result format (per query) in the JSON output:
-
-```json
-{
-  "query_id": {
-    "topk": [{"id": 123, "score": 0.91}],
-    "position_estimates": {
-      "rank_medoid_top5": {"lat": 50.8, "lon": 4.35}
-    }
-  }
-}
-```
-
-
-5. **Run Task 2 (locally)**
+### 4. Standalone Task 1 (MegaLoc only)
 
 ```bash
-python task2.py
-```
+# Run Task 1 retrieval
+python task1.py --topk 100
 
-The script requires an `images/` folder to contain the reference image and candidate images with matching ID-based metadata in `images/metadata.json`.
-
-
-Evaluate Task 1 Retrieval
-------------------------
-
-After running `task1.py`:
-
-```bash
-python evaluate_task1_results.py
-```
-
-Default outputs:
-- `outputs/metrics.json`
-- `outputs/retrieval_eval_details.json`
-
-Example with explicit Recall@K:
-
-```bash
+# Evaluate Task 1
 python evaluate_task1_results.py --ks 1 5 10
-```
 
-Visualize Task 1 Retrieval Results
----------------------------------
-
-After running `task1.py`, you can generate side-by-side figures showing:
-- the query image,
-- the top-k retrieved images found in your results file,
-- a proximity label (`CLOSE` / `NOT CLOSE`) based on geographic distance.
-
-Default command:
-
-```bash
+# Visualize retrieval results
 python visualize_task1_results.py \
   --results outputs/topk_results.json \
   --embeddings outputs/embeddings.pt \
-  --image-dir /scratch/users/agraillet/images \
+  --image-dir images \
   --output-dir outputs/visualizations
 ```
 
-Useful options:
+### 5. Standalone Task 2 (LightGlue only)
 
 ```bash
-# Visualize one specific query
-python visualize_task1_results.py --query-id 12345
-
-# Render more queries and change proximity threshold (meters)
-python visualize_task1_results.py --max-queries 50 --threshold-m 30
-
-# Add an angle constraint ("CLOSE" requires both distance and angle)
-python visualize_task1_results.py --angle-threshold-deg 25
+# Run Task 2 on a single reference image
+python task2.py
 ```
 
+Requires:
 
-Configuration
--------------
+- `images/` folder with reference and candidate images
+- `images/metadata.json` with ground truth angles
 
-**Configuration** (in `task1.py`):
-Defaults are centralized in `config.py` (paths, split params, Task 1/eval/visualization defaults).
+## Configuration
 
-Important entries include:
-- `IMAGE_DIR`
-- `TASK1_ANNOTATIONS_DB`, `TASK1_ANNOTATIONS_QUERY`
-- `TASK1_TOPK`
-- `EVAL_KS`
-- `SPLIT_INPUT_METADATA`, `SPLIT_OUTPUT_DIR`, `SPLIT_VAL_RATIO`, `SPLIT_SEED`
+All configuration parameters are in `config.py`:
 
-**Configuration** (in `task2.py`):
-- `REF_IMAGE_PATH`: Path to the reference image
-- `IMAGE_DIR`: Path to the images folder (and to metadata.json)
-- `MIN_MATCHES`: Minimum feature matches required for pose estimation
-- `FOCAL_LENGTH_SCALE`: Adjustment factor for focal length estimation
+| Parameter                           | Description                          | Default |
+| ----------------------------------- | ------------------------------------ | ------- |
+| `PIPELINE_TOPK`                     | Number of retrieved candidates       | 100     |
+| `PIPELINE_POSITION_ESTIMATION_TOPK` | Top-k for position estimation        | 5       |
+| `PIPELINE_TASK2_MIN_MATCHES`        | Minimum matches for angle estimation | 100     |
+| `PIPELINE_MAX_QUERIES`              | Limit queries for testing            | None    |
 
+## Command Reference
 
-Slurm Launchers
----------------
+### Pipeline Arguments
 
-Available launchers in `launchers/`:
-- `run_task1.sh`
-- `run_visualize_task1.sh`
-- `run_evaluation_task1.sh`
-- `run_task1_pipeline.sh` (Task 1 -> Visualization -> Evaluation)
+| Argument                     | Description                          | Default     |
+| ---------------------------- | ------------------------------------ | ----------- |
+| `--topk`                     | Number of retrievals for Task 1      | 100         |
+| `--position-estimation-topk` | Top-k for position estimation        | 5           |
+| `--min-matches`              | Minimum matches for angle estimation | 100         |
+| `--city`                     | City dataset (brussels/liege)        | brussels    |
+| `--user-images`              | Run on user images without metadata  | False       |
+| `--user-image-dir`           | Directory with user images           | user_images |
+| `--max-queries`              | Limit number of queries processed    | None        |
+| `--skip-task1`               | Skip Task 1, use existing results    | False       |
+| `--task1-results`            | Path to existing Task 1 results      | None        |
 
-Example:
+### City Coordinates
 
-```bash
-sbatch launchers/run_task1_pipeline.sh
+- **Brussels**: `north: 50.86166, south: 50.83196, west: 4.32501, east: 4.37582`
+- **Liege**: `north: 50.655012, south: 50.615254, west: 5.555222, east: 5.600235`
+
+## Output Format
+
+### User Mode Summary (user_results_summary.yaml)
+
+```yaml
+mode: user_images
+total_images: 10
+results:
+   IMG20260503135510:
+      position_estimate:
+         lat: 50.62734630964496
+         lon: 5.5880820751190186
+      estimated_angle: null
+      consistency_error: null
+      avg_matches_used: 0
+```
+
+### Pipeline Evaluation (pipeline_evaluation.yaml)
+
+```yaml
+summary:
+   total_queries: 1088
+   task1_position_error_m:
+      mean: 489.77
+      median: 98.92
+   task1_recall:
+      "@1_50m": 0.47
+      "@5_50m": 0.52
+      "@10_50m": 0.56
+   task2_angle_error_deg:
+      mean: 157.44
+      median: 157.44
+      consistency_error: 34.30
+   task2_angle_success:
+      threshold_10deg: 0.0
+      threshold_20deg: 0.0
+      threshold_30deg: 0.0
 ```

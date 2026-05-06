@@ -1,6 +1,6 @@
 """Centralized default configuration for Task 1 pipeline scripts."""
 
-IMAGE_DIR = "/scratch/users/agraillet/images"
+IMAGE_DIR = "images"
 OUTPUT_DIR = "outputs"
 
 # Shared
@@ -47,3 +47,25 @@ SPLIT_INPUT_METADATA = f"{IMAGE_DIR}/metadata.json"
 SPLIT_OUTPUT_DIR = "dataset/splits"
 SPLIT_VAL_RATIO = 0.2
 SPLIT_SEED = 42
+
+# task2.py defaults
+TASK2_MIN_MATCHES = 500
+TASK2_FEW_MATCHES_THRESHOLD = 50
+TASK2_FOCAL_LENGTH_SCALE = 1.0
+TASK2_MAX_NUM_KEYPOINTS = 2048
+TASK2_OUTPUT_MANY_MATCHES_DIR = f"{IMAGE_DIR}/output/many_matches"
+TASK2_OUTPUT_FEW_MATCHES_DIR = f"{IMAGE_DIR}/output/few_matches"
+TASK2_REF_IMAGE_ID = 170533595024759
+
+# pipeline.py defaults
+PIPELINE_TOPK = 100
+PIPELINE_POSITION_ESTIMATION_TOPK = 5
+PIPELINE_TASK2_MIN_MATCHES = 100
+PIPELINE_TASK2_FOCAL_LENGTH_SCALE = 1.0
+PIPELINE_TASK2_SAVE_VISUALIZATIONS = False
+PIPELINE_MAX_QUERIES = None  # Limit for testing (None = all queries)
+PIPELINE_CITY = "brussels"
+PIPELINE_USER_IMAGES = False
+PIPELINE_USER_IMAGE_DIR = "user_images"
+PIPELINE_SKIP_TASK1 = False
+PIPELINE_TASK1_RESULTS = None

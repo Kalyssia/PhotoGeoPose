@@ -1,3 +1,4 @@
+import argparse
 import json, os, requests
 import mercantile
 import asyncio
@@ -10,21 +11,37 @@ from vt2geojson.tools import vt_bytes_to_geojson
 SHARED_DIR = "/scratch/users/agraillet"
 OUTPUT_DIR = os.path.join(SHARED_DIR, "images")
 # Bounding box of Brussels center
-BX_CENTER = {
+BRUSSELS_CENTER = {
     "north": 50.86166,
     "south": 50.83196,
     "west": 4.32501,
     "east": 4.37582
 }
+# Bounding box of Liege center
+LIEGE_CENTER = {
+    "north": 50.655012,
+    "south": 50.615254,
+    "west": 5.555222,
+    "east": 5.600235
+}
+# Default city
+CITY_BBOX = BRUSSELS_CENTER
 # Zoom for tile retrieval
 ZOOM = 14
-# Grid size in degrees (approx 10m)
-CELL_SIZE = 0.0001
-# Maximum number of images per cell and sequence
-MAX_PER_CELL = 12
-MAX_PER_SEQUENCE = 10
-# Minimum angle difference in degrees
-ANGLE_THRESHOLD = 360//MAX_PER_CELL
+
+# City-specific density parameters
+DENSITY_PARAMS = {
+    "brussels": {
+        "cell_size": 0.0001,      # ~10m cells
+        "max_per_cell": 12,       # max images per cell
+        "max_per_sequence": 10,   # max per sequence
+    },
+    "liege": {
+        "cell_size": 0.00001,     # ~5m cells (smaller = denser grid)
+        "max_per_cell": 50,       # more images per cell
+        "max_per_sequence": 30,   # more per sequence
+    }
+}
 # Maximum concurrent downloads
 MAX_CONCURRENT = 20
 # Batch size for URL retrieval
@@ -43,17 +60,17 @@ def angle_diff(a, b) -> float:
     d = abs(a - b) % 360
     return min(d, 360 - d)
 
-def is_angle_diverse(existing, new_angle) -> bool:
+def is_angle_diverse(existing, new_angle, angle_threshold) -> bool:
     """ Check if a new angle is different enough compared to existing angles """
-    return all(angle_diff(a, new_angle) > ANGLE_THRESHOLD for a in existing)
+    return all(angle_diff(a, new_angle) > angle_threshold for a in existing)
 
 def fetch_tiles() -> list[dict]:
     """ Download metadata from Mapillary tiles """
     # Get the tiles covering the bbox
-    west = BX_CENTER["west"]
-    south = BX_CENTER["south"]
-    east = BX_CENTER["east"]
-    north = BX_CENTER["north"]
+    west = CITY_BBOX["west"]
+    south = CITY_BBOX["south"]
+    east = CITY_BBOX["east"]
+    north = CITY_BBOX["north"]
     # What impact has the zoom level ?
     tiles = list(mercantile.tiles(west, south, east, north, zooms=ZOOM))
     total_tiles = len(tiles)
@@ -75,8 +92,15 @@ def fetch_tiles() -> list[dict]:
     
     return features
 
-def filter_images(features) -> list[dict]:
+def filter_images(features, city="brussels") -> list[dict]:
     """ Filter images based on spatial, sequence, and angle diversity criteria """
+    # Get city-specific density parameters
+    params = DENSITY_PARAMS.get(city, DENSITY_PARAMS["brussels"])
+    cell_size = params["cell_size"]
+    max_per_cell = params["max_per_cell"]
+    max_per_sequence = params["max_per_sequence"]
+    angle_threshold = 360 // max_per_cell
+    
     # Used to filter images based on their location and angle
     grid = defaultdict(list)
     # Used to avoid sequence overrepresentation
@@ -89,7 +113,7 @@ def filter_images(features) -> list[dict]:
         # Extract coordinates and properties
         lon, lat = f["geometry"]["coordinates"]
         # Ensure the image is in the bbox
-        if not (BX_CENTER["west"] <= lon <= BX_CENTER["east"] and BX_CENTER["south"] <= lat <= BX_CENTER["north"]):
+        if not (CITY_BBOX["west"] <= lon <= CITY_BBOX["east"] and CITY_BBOX["south"] <= lat <= CITY_BBOX["north"]):
             continue
         properties = f["properties"]
         # We might use it by splitting it in 4 images, but safer to ignore now
@@ -99,16 +123,16 @@ def filter_images(features) -> list[dict]:
         angle = properties.get("compass_angle", 0)
         seq_id = properties.get("sequence_id")
         # If the sequence is overrepresented, skip
-        if sequence_counts[seq_id] >= MAX_PER_SEQUENCE:
+        if sequence_counts[seq_id] >= max_per_sequence:
             continue
         # Find the corresponding cell
-        cell = (round(lat / CELL_SIZE), round(lon / CELL_SIZE))
+        cell = (round(lat / cell_size), round(lon / cell_size))
         # If the cell is full, skip
-        if len(grid[cell]) >= MAX_PER_CELL:
+        if len(grid[cell]) >= max_per_cell:
             continue
         # If the angle is not diverse enough, skip
         existing_angles = [x["angle"] for x in grid[cell]]
-        if not is_angle_diverse(existing_angles, angle):
+        if not is_angle_diverse(existing_angles, angle, angle_threshold):
             continue
         # Keep only useful info
         item = {
@@ -189,9 +213,48 @@ async def download_all(items, urls):
 
 
 # Main function
+def parse_args():
+    parser = argparse.ArgumentParser(description="Download Mapillary images for a city")
+    parser.add_argument(
+        "--city",
+        choices=["brussels", "liege"],
+        default="brussels",
+        help="City to download images from (default: brussels)"
+    )
+    parser.add_argument(
+        "--output-dir",
+        default=None,
+        help="Output directory for images (default: /scratch/users/agraillet/images or ./images if not set)"
+    )
+    return parser.parse_args()
+
+
 def main():
+    args = parse_args()
+    
+    global CITY_BBOX, OUTPUT_DIR
+    
+    # Set city bounding box
+    if args.city == "brussels":
+        CITY_BBOX = BRUSSELS_CENTER
+        print("Using Brussels coordinates")
+    elif args.city == "liege":
+        CITY_BBOX = LIEGE_CENTER
+        print("Using Liege coordinates")
+    
+    # Set output directory
+    if args.output_dir:
+        OUTPUT_DIR = args.output_dir
+    elif not os.path.exists(SHARED_DIR):
+        # Fallback to local directory if shared directory doesn't exist
+        OUTPUT_DIR = os.path.join(os.path.dirname(__file__), "..", "images")
+        OUTPUT_DIR = os.path.abspath(OUTPUT_DIR)
+    
+    print(f"Output directory: {OUTPUT_DIR}")
+    os.makedirs(OUTPUT_DIR, exist_ok=True)
+    
     features = fetch_tiles()
-    selected = filter_images(features)
+    selected = filter_images(features, city=args.city)
     print(f"Selected {len(selected)} images out of {len(features)} candidates", flush=True)
     ids = [x["id"] for x in selected]
     urls = fetch_urls(ids)

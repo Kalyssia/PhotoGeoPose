@@ -1,4 +1,5 @@
 /images
+/user_images
 /logs/*
 /outputs/*
 __pycache__/

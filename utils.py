@@ -2,6 +2,8 @@ import json
 import math
 from pathlib import Path
 
+import numpy as np
+
 
 def haversine_m(lat1, lon1, lat2, lon2):
     """Great-circle distance between two coordinates in meters."""
@@ -18,6 +20,28 @@ def angle_diff_deg(a, b):
     """Smallest absolute angle difference in degrees."""
     d = abs(float(a) - float(b)) % 360.0
     return min(d, 360.0 - d)
+
+
+def normalize_angle(angle):
+    """Normalizes an angle to the range [0, 360) degrees."""
+    return angle % 360
+
+
+def circular_mean_deg(angles):
+    """Computes the circular mean of a list of angles (in degrees)."""
+    if not angles:
+        return 0.0
+    radians = np.deg2rad(angles)
+    sin_mean = np.sin(radians).mean()
+    cos_mean = np.cos(radians).mean()
+    return normalize_angle(np.rad2deg(np.arctan2(sin_mean, cos_mean)))
+
+
+def mean_circular_error(reference, angles):
+    """Computes the mean circular error between a reference angle and a list of angles."""
+    if not angles:
+        return 0.0
+    return float(np.mean([angle_diff_deg(reference, angle) for angle in angles]))
 
 
 def load_topk_results(results_path):

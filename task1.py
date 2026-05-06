@@ -91,8 +91,38 @@ def extract_descriptor(output):
     raise TypeError(f"Unsupported model output type: {type(output)}")
 
 
-def compute_embeddings(model, device, annotations_path, image_dir, batch_size, num_workers):
-    """Compute and return L2-normalized embeddings for all images in one split."""
+def compute_embeddings(model, device, annotations_path, image_dir, batch_size, num_workers, custom_images=None):
+    """Compute and return L2-normalized embeddings for all images in one split.
+
+    Args:
+        custom_images: Optional list of image paths to process instead of annotations
+    """
+    if custom_images:
+        # Process specific images without annotations
+        from PIL import Image
+        transform = build_transform()
+        all_ids = []
+        all_desc = []
+
+        model.eval()
+        with torch.no_grad():
+            for img_path in tqdm(custom_images, desc="Embedding custom images"):
+                try:
+                    img = Image.open(img_path).convert('RGB')
+                    img_tensor = transform(img).unsqueeze(0).to(device)
+                    desc = extract_descriptor(model(img_tensor))
+                    desc = F.normalize(desc, p=2, dim=1)
+                    all_desc.append(desc.cpu())
+                    # Use filename stem as id
+                    img_id = int(Path(img_path).stem) if Path(img_path).stem.isdigit() else hash(Path(img_path).stem) % (2**31)
+                    all_ids.append(img_id)
+                except Exception as e:
+                    print(f"Warning: Could not process {img_path}: {e}")
+
+        embeddings = torch.cat(all_desc, dim=0) if all_desc else torch.empty(0)
+        return all_ids, embeddings
+
+    # Original code for annotation-based processing
     dataset = AnnotationImageDataset(
         annotations_path=annotations_path,
         image_dir=image_dir,
