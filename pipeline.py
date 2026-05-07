@@ -400,6 +400,7 @@ def generate_yaml_report(task1_results, task2_results, db_meta, query_meta, args
                 "consistency_error": float(avg_consistency),
             }
             report["summary"]["task2_angle_success"] = {
+                "success_rate": queries_with_angles / total_queries if total_queries > 0 else 0,
                 "threshold_10deg": float(np.mean(angle_errors_array <= 10.0)),
                 "threshold_20deg": float(np.mean(angle_errors_array <= 20.0)),
                 "threshold_30deg": float(np.mean(angle_errors_array <= 30.0)),

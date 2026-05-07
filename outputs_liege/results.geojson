@@ -1,0 +1,1617 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.5801695585250854,
+          50.63738062953428
+        ]
+      },
+      "properties": {
+        "image_id": "IMG_1412",
+        "estimated_angle": 328.8798849023436,
+        "consistency_error": 28.293259870160245,
+        "avg_matches_used": 140.66666666666666
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            5.5801695585250854,
+            50.63738062953428
+          ],
+          [
+            5.579804270978478,
+            50.63776541728205
+          ]
+        ]
+      },
+      "properties": {
+        "image_id": "IMG_1412_direction",
+        "angle": 328.8798849023436
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.577744841575623,
+          50.62967389100325
+        ]
+      },
+      "properties": {
+        "image_id": "IMG_1413",
+        "estimated_angle": 342.4167000840416,
+        "consistency_error": 6.207437491843294,
+        "avg_matches_used": 301.5833333333333
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            5.577744841575623,
+            50.62967389100325
+          ],
+          [
+            5.57753136405403,
+            50.63010236502044
+          ]
+        ]
+      },
+      "properties": {
+        "image_id": "IMG_1413_direction",
+        "angle": 342.4167000840416
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.57856559753418,
+          50.63584618763991
+        ]
+      },
+      "properties": {
+        "image_id": "IMG_1416",
+        "estimated_angle": null,
+        "consistency_error": null,
+        "avg_matches_used": 0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.577664375305176,
+          50.63609455968154
+        ]
+      },
+      "properties": {
+        "image_id": "IMG_1419",
+        "estimated_angle": 186.16747334368333,
+        "consistency_error": 17.317221660690404,
+        "avg_matches_used": 373.42857142857144
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            5.577664375305176,
+            50.63609455968154
+          ],
+          [
+            5.57758844456261,
+            50.63564768768057
+          ]
+        ]
+      },
+      "properties": {
+        "image_id": "IMG_1419_direction",
+        "angle": 186.16747334368333
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.574032664299011,
+          50.63236203601491
+        ]
+      },
+      "properties": {
+        "image_id": "IMG_1421",
+        "estimated_angle": null,
+        "consistency_error": null,
+        "avg_matches_used": 0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.5711036920547485,
+          50.63263424466038
+        ]
+      },
+      "properties": {
+        "image_id": "IMG_1427",
+        "estimated_angle": null,
+        "consistency_error": null,
+        "avg_matches_used": 0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.583007335662842,
+          50.649851640184664
+        ]
+      },
+      "properties": {
+        "image_id": "IMG_1428",
+        "estimated_angle": null,
+        "consistency_error": null,
+        "avg_matches_used": 0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.571082234382629,
+          50.62853733789382
+        ]
+      },
+      "properties": {
+        "image_id": "IMG_1430",
+        "estimated_angle": 324.21546886170347,
+        "consistency_error": 65.16879632607349,
+        "avg_matches_used": 197.2
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            5.571082234382629,
+            50.62853733789382
+          ],
+          [
+            5.570669030676,
+            50.628901961035766
+          ]
+        ]
+      },
+      "properties": {
+        "image_id": "IMG_1430_direction",
+        "angle": 324.21546886170347
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.565664172172546,
+          50.62573667210086
+        ]
+      },
+      "properties": {
+        "image_id": "IMG_1431",
+        "estimated_angle": null,
+        "consistency_error": null,
+        "avg_matches_used": 0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.596107244491577,
+          50.64558955302891
+        ]
+      },
+      "properties": {
+        "image_id": "IMG_1432",
+        "estimated_angle": null,
+        "consistency_error": null,
+        "avg_matches_used": 0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.572766661643982,
+          50.62754708509269
+        ]
+      },
+      "properties": {
+        "image_id": "IMG_1434",
+        "estimated_angle": 212.81911600009514,
+        "consistency_error": 0.0,
+        "avg_matches_used": 149.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            5.572766661643982,
+            50.62754708509269
+          ],
+          [
+            5.572383675171716,
+            50.627169353376715
+          ]
+        ]
+      },
+      "properties": {
+        "image_id": "IMG_1434_direction",
+        "angle": 212.81911600009514
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.569725036621094,
+          50.63269889398208
+        ]
+      },
+      "properties": {
+        "image_id": "IMG_1440",
+        "estimated_angle": null,
+        "consistency_error": null,
+        "avg_matches_used": 0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.573179721832275,
+          50.627312279823116
+        ]
+      },
+      "properties": {
+        "image_id": "IMG_1442",
+        "estimated_angle": 291.75881280719807,
+        "consistency_error": 8.567717412009209,
+        "avg_matches_used": 250.625
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            5.573179721832275,
+            50.627312279823116
+          ],
+          [
+            5.572523438889324,
+            50.627478900035726
+          ]
+        ]
+      },
+      "properties": {
+        "image_id": "IMG_1442_direction",
+        "angle": 291.75881280719807
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.572680830955505,
+          50.62763215917633
+        ]
+      },
+      "properties": {
+        "image_id": "IMG_1443",
+        "estimated_angle": 150.69017013880037,
+        "consistency_error": 16.38865196060828,
+        "avg_matches_used": 224.125
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            5.572680830955505,
+            50.62763215917633
+          ],
+          [
+            5.57302675056806,
+            50.6272402243177
+          ]
+        ]
+      },
+      "properties": {
+        "image_id": "IMG_1443_direction",
+        "angle": 150.69017013880037
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.566501021385193,
+          50.62512070742699
+        ]
+      },
+      "properties": {
+        "image_id": "IMG_1444",
+        "estimated_angle": null,
+        "consistency_error": null,
+        "avg_matches_used": 0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.579482913017273,
+          50.65006592486108
+        ]
+      },
+      "properties": {
+        "image_id": "IMG_1445",
+        "estimated_angle": null,
+        "consistency_error": null,
+        "avg_matches_used": 0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.5910056829452515,
+          50.628305940481255
+        ]
+      },
+      "properties": {
+        "image_id": "IMG_1446",
+        "estimated_angle": 250.70126738271375,
+        "consistency_error": 0.0,
+        "avg_matches_used": 108.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            5.5910056829452515,
+            50.628305940481255
+          ],
+          [
+            5.590338747147965,
+            50.62815739220367
+          ]
+        ]
+      },
+      "properties": {
+        "image_id": "IMG_1446_direction",
+        "angle": 250.70126738271375
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.572240948677063,
+          50.62807794485795
+        ]
+      },
+      "properties": {
+        "image_id": "IMG_1448",
+        "estimated_angle": 247.5371563673237,
+        "consistency_error": 13.554843467147613,
+        "avg_matches_used": 216.5
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            5.572240948677063,
+            50.62807794485795
+          ],
+          [
+            5.571587923310844,
+            50.62790620789009
+          ]
+        ]
+      },
+      "properties": {
+        "image_id": "IMG_1448_direction",
+        "angle": 247.5371563673237
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.57256281375885,
+          50.627295264902926
+        ]
+      },
+      "properties": {
+        "image_id": "IMG_1450",
+        "estimated_angle": 7.068745759679984,
+        "consistency_error": 33.91298039005571,
+        "avg_matches_used": 267.5
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            5.57256281375885,
+            50.627295264902926
+          ],
+          [
+            5.572649771528002,
+            50.62774132273018
+          ]
+        ]
+      },
+      "properties": {
+        "image_id": "IMG_1450_direction",
+        "angle": 7.068745759679984
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.5675095319747925,
+          50.63548893788132
+        ]
+      },
+      "properties": {
+        "image_id": "IMG_1457",
+        "estimated_angle": 7.033973267096507,
+        "consistency_error": 54.466850599353165,
+        "avg_matches_used": 141.66666666666666
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            5.5675095319747925,
+            50.63548893788132
+          ],
+          [
+            5.56759607918143,
+            50.63593502856444
+          ]
+        ]
+      },
+      "properties": {
+        "image_id": "IMG_1457_direction",
+        "angle": 7.033973267096507
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.567450523376465,
+          50.635478730705444
+        ]
+      },
+      "properties": {
+        "image_id": "IMG_1458",
+        "estimated_angle": 337.3493723573842,
+        "consistency_error": 66.40928480688794,
+        "avg_matches_used": 135.3
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            5.567450523376465,
+            50.635478730705444
+          ],
+          [
+            5.567178345893151,
+            50.635893536488936
+          ]
+        ]
+      },
+      "properties": {
+        "image_id": "IMG_1458_direction",
+        "angle": 337.3493723573842
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.5685341358184814,
+          50.640218024262765
+        ]
+      },
+      "properties": {
+        "image_id": "IMG_1460",
+        "estimated_angle": 321.8308482709746,
+        "consistency_error": 0.0,
+        "avg_matches_used": 123.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            5.5685341358184814,
+            50.640218024262765
+          ],
+          [
+            5.568097330330095,
+            50.64057139546377
+          ]
+        ]
+      },
+      "properties": {
+        "image_id": "IMG_1460_direction",
+        "angle": 321.8308482709746
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.567986965179443,
+          50.6355297665626
+        ]
+      },
+      "properties": {
+        "image_id": "IMG_1461",
+        "estimated_angle": null,
+        "consistency_error": null,
+        "avg_matches_used": 0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.578640699386597,
+          50.64719170775868
+        ]
+      },
+      "properties": {
+        "image_id": "IMG_1463",
+        "estimated_angle": 242.46231798087388,
+        "consistency_error": 0.1637512793037672,
+        "avg_matches_used": 122.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            5.578640699386597,
+            50.64719170775868
+          ],
+          [
+            5.578013862693975,
+            50.64698390222809
+          ]
+        ]
+      },
+      "properties": {
+        "image_id": "IMG_1463_direction",
+        "angle": 242.46231798087388
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.568228363990784,
+          50.625665207
+        ]
+      },
+      "properties": {
+        "image_id": "IMG_1464",
+        "estimated_angle": null,
+        "consistency_error": null,
+        "avg_matches_used": 0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.56581437587738,
+          50.62560395111282
+        ]
+      },
+      "properties": {
+        "image_id": "IMG_1468",
+        "estimated_angle": 112.91084884792927,
+        "consistency_error": 3.3856562603459275,
+        "avg_matches_used": 285.14285714285717
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            5.56581437587738,
+            50.62560395111282
+          ],
+          [
+            5.566465236004078,
+            50.625428971495296
+          ]
+        ]
+      },
+      "properties": {
+        "image_id": "IMG_1468_direction",
+        "angle": 112.91084884792927
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.566420555114746,
+          50.625144529415195
+        ]
+      },
+      "properties": {
+        "image_id": "IMG_1469",
+        "estimated_angle": null,
+        "consistency_error": null,
+        "avg_matches_used": 0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.572482347488403,
+          50.64436834107789
+        ]
+      },
+      "properties": {
+        "image_id": "IMG_1716",
+        "estimated_angle": 25.79397630529224,
+        "consistency_error": 0.94669001735266,
+        "avg_matches_used": 116.5
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            5.572482347488403,
+            50.64436834107789
+          ],
+          [
+            5.572789938559728,
+            50.644773030495706
+          ]
+        ]
+      },
+      "properties": {
+        "image_id": "IMG_1716_direction",
+        "angle": 25.79397630529224
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.572482347488403,
+          50.64436834107789
+        ]
+      },
+      "properties": {
+        "image_id": "IMG_1717",
+        "estimated_angle": 338.2176774759281,
+        "consistency_error": 0.0,
+        "avg_matches_used": 112.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            5.572482347488403,
+            50.64436834107789
+          ],
+          [
+            5.572220035948377,
+            50.6447857217382
+          ]
+        ]
+      },
+      "properties": {
+        "image_id": "IMG_1717_direction",
+        "angle": 338.2176774759281
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.572519898414612,
+          50.64479355775444
+        ]
+      },
+      "properties": {
+        "image_id": "IMG_1718",
+        "estimated_angle": 339.1060687482419,
+        "consistency_error": 0.0,
+        "avg_matches_used": 200.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            5.572519898414612,
+            50.64479355775444
+          ],
+          [
+            5.5722677936366,
+            50.64521347426207
+          ]
+        ]
+      },
+      "properties": {
+        "image_id": "IMG_1718_direction",
+        "angle": 339.1060687482419
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.572535991668701,
+          50.64471531817483
+        ]
+      },
+      "properties": {
+        "image_id": "IMG_1720",
+        "estimated_angle": 301.87669195906284,
+        "consistency_error": 25.485865341456872,
+        "avg_matches_used": 114.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            5.572535991668701,
+            50.64471531817483
+          ],
+          [
+            5.571935710677278,
+            50.6449526815993
+          ]
+        ]
+      },
+      "properties": {
+        "image_id": "IMG_1720_direction",
+        "angle": 301.87669195906284
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.572519898414612,
+          50.64477995088038
+        ]
+      },
+      "properties": {
+        "image_id": "IMG_1722",
+        "estimated_angle": null,
+        "consistency_error": null,
+        "avg_matches_used": 0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.576205253601074,
+          50.64462347154557
+        ]
+      },
+      "properties": {
+        "image_id": "IMG_1723",
+        "estimated_angle": 92.97595087167842,
+        "consistency_error": 49.022297455951374,
+        "avg_matches_used": 104.5
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            5.576205253601074,
+            50.64462347154557
+          ],
+          [
+            5.576911188317177,
+            50.644600136358314
+          ]
+        ]
+      },
+      "properties": {
+        "image_id": "IMG_1723_direction",
+        "angle": 92.97595087167842
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.5718278884887695,
+          50.64347367262542
+        ]
+      },
+      "properties": {
+        "image_id": "IMG_1727",
+        "estimated_angle": null,
+        "consistency_error": null,
+        "avg_matches_used": 0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.571275353431702,
+          50.64373561154045
+        ]
+      },
+      "properties": {
+        "image_id": "IMG_1728",
+        "estimated_angle": 143.8233836100803,
+        "consistency_error": 17.693119660773192,
+        "avg_matches_used": 314.125
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            5.571275353431702,
+            50.64373561154045
+          ],
+          [
+            5.571692604797723,
+            50.64337279643108
+          ]
+        ]
+      },
+      "properties": {
+        "image_id": "IMG_1728_direction",
+        "angle": 143.8233836100803
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.57132363319397,
+          50.64368798639177
+        ]
+      },
+      "properties": {
+        "image_id": "IMG_1729",
+        "estimated_angle": 98.84843460156479,
+        "consistency_error": 6.8455504724608325,
+        "avg_matches_used": 236.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            5.57132363319397,
+            50.64368798639177
+          ],
+          [
+            5.572022094457029,
+            50.643618847940715
+          ]
+        ]
+      },
+      "properties": {
+        "image_id": "IMG_1729_direction",
+        "angle": 98.84843460156479
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.571457743644714,
+          50.643592735949625
+        ]
+      },
+      "properties": {
+        "image_id": "IMG_1731",
+        "estimated_angle": null,
+        "consistency_error": null,
+        "avg_matches_used": 0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.572535991668701,
+          50.64471531817483
+        ]
+      },
+      "properties": {
+        "image_id": "IMG_1732",
+        "estimated_angle": 320.71559528485005,
+        "consistency_error": 13.018473070792822,
+        "avg_matches_used": 347.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            5.572535991668701,
+            50.64471531817483
+          ],
+          [
+            5.572088410357204,
+            50.64506321580245
+          ]
+        ]
+      },
+      "properties": {
+        "image_id": "IMG_1732_direction",
+        "angle": 320.71559528485005
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.57132363319397,
+          50.64368798639177
+        ]
+      },
+      "properties": {
+        "image_id": "IMG_1733",
+        "estimated_angle": 14.893651679424364,
+        "consistency_error": 1.7763568394002505e-15,
+        "avg_matches_used": 218.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            5.57132363319397,
+            50.64368798639177
+          ],
+          [
+            5.571505317986296,
+            50.644122359066145
+          ]
+        ]
+      },
+      "properties": {
+        "image_id": "IMG_1733_direction",
+        "angle": 14.893651679424364
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.576205253601074,
+          50.64462347154557
+        ]
+      },
+      "properties": {
+        "image_id": "IMG_1734",
+        "estimated_angle": null,
+        "consistency_error": null,
+        "avg_matches_used": 0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.581612586975098,
+          50.63446820932356
+        ]
+      },
+      "properties": {
+        "image_id": "IMG_9777",
+        "estimated_angle": 258.54219428884244,
+        "consistency_error": 35.911637491018624,
+        "avg_matches_used": 145.42857142857142
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            5.581612586975098,
+            50.63446820932356
+          ],
+          [
+            5.580919935630187,
+            50.6343789230795
+          ]
+        ]
+      },
+      "properties": {
+        "image_id": "IMG_9777_direction",
+        "angle": 258.54219428884244
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.567986965179443,
+          50.6355297665626
+        ]
+      },
+      "properties": {
+        "image_id": "IMG_9778",
+        "estimated_angle": 27.481922222552974,
+        "consistency_error": 16.570950817050793,
+        "avg_matches_used": 138.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            5.567986965179443,
+            50.6355297665626
+          ],
+          [
+            5.568313108945262,
+            50.63592851993069
+          ]
+        ]
+      },
+      "properties": {
+        "image_id": "IMG_9778_direction",
+        "angle": 27.481922222552974
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.578131079673767,
+          50.635325622801616
+        ]
+      },
+      "properties": {
+        "image_id": "IMG_9781",
+        "estimated_angle": 285.96234480047355,
+        "consistency_error": 28.44591151392765,
+        "avg_matches_used": 240.16666666666666
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            5.578131079673767,
+            50.635325622801616
+          ],
+          [
+            5.577451581478518,
+            50.635449230524856
+          ]
+        ]
+      },
+      "properties": {
+        "image_id": "IMG_9781_direction",
+        "angle": 285.96234480047355
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.578104257583618,
+          50.63525417227581
+        ]
+      },
+      "properties": {
+        "image_id": "IMG_9785",
+        "estimated_angle": 275.97724128812683,
+        "consistency_error": 28.74224530824663,
+        "avg_matches_used": 202.8
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            5.578104257583618,
+            50.63525417227581
+          ],
+          [
+            5.5774013524485815,
+            50.63530097749402
+          ]
+        ]
+      },
+      "properties": {
+        "image_id": "IMG_9785_direction",
+        "angle": 275.97724128812683
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.567986965179443,
+          50.6355297665626
+        ]
+      },
+      "properties": {
+        "image_id": "IMG_9786",
+        "estimated_angle": 255.0117564469479,
+        "consistency_error": 35.987176731150235,
+        "avg_matches_used": 294.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            5.567986965179443,
+            50.6355297665626
+          ],
+          [
+            5.567304258022377,
+            50.63541352333545
+          ]
+        ]
+      },
+      "properties": {
+        "image_id": "IMG_9786_direction",
+        "angle": 255.0117564469479
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.578082799911499,
+          50.63283159494273
+        ]
+      },
+      "properties": {
+        "image_id": "IMG_9787(1)",
+        "estimated_angle": 343.406933881357,
+        "consistency_error": 60.23229436829983,
+        "avg_matches_used": 154.36363636363637
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            5.578082799911499,
+            50.63283159494273
+          ],
+          [
+            5.577880982717005,
+            50.63326235132573
+          ]
+        ]
+      },
+      "properties": {
+        "image_id": "IMG_9787(1)_direction",
+        "angle": 343.406933881357
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.578082799911499,
+          50.63283159494273
+        ]
+      },
+      "properties": {
+        "image_id": "IMG_9787",
+        "estimated_angle": 343.406933881357,
+        "consistency_error": 60.23229436829983,
+        "avg_matches_used": 154.36363636363637
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            5.578082799911499,
+            50.63283159494273
+          ],
+          [
+            5.577880982717005,
+            50.63326235132573
+          ]
+        ]
+      },
+      "properties": {
+        "image_id": "IMG_9787_direction",
+        "angle": 343.406933881357
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.577954053878784,
+          50.63329434407984
+        ]
+      },
+      "properties": {
+        "image_id": "IMG_9789",
+        "estimated_angle": null,
+        "consistency_error": null,
+        "avg_matches_used": 0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.577691197395325,
+          50.63612518080129
+        ]
+      },
+      "properties": {
+        "image_id": "IMG_9791",
+        "estimated_angle": 320.76283742318805,
+        "consistency_error": 82.6123412863991,
+        "avg_matches_used": 116.5
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            5.577691197395325,
+            50.63612518080129
+          ],
+          [
+            5.577244148871989,
+            50.636473313482206
+          ]
+        ]
+      },
+      "properties": {
+        "image_id": "IMG_9791_direction",
+        "angle": 320.76283742318805
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.576274991035461,
+          50.639159975034374
+        ]
+      },
+      "properties": {
+        "image_id": "IMG_9794",
+        "estimated_angle": null,
+        "consistency_error": null,
+        "avg_matches_used": 0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.579000115394592,
+          50.620795114955655
+        ]
+      },
+      "properties": {
+        "image_id": "IMG_9795",
+        "estimated_angle": null,
+        "consistency_error": null,
+        "avg_matches_used": 0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.57854950428009,
+          50.64357572692177
+        ]
+      },
+      "properties": {
+        "image_id": "IMG_9801",
+        "estimated_angle": 332.3692098257019,
+        "consistency_error": 0.0,
+        "avg_matches_used": 108.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            5.57854950428009,
+            50.64357572692177
+          ],
+          [
+            5.578221676556575,
+            50.64397393947078
+          ]
+        ]
+      },
+      "properties": {
+        "image_id": "IMG_9801_direction",
+        "angle": 332.3692098257019
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.5801695585250854,
+          50.63738062953428
+        ]
+      },
+      "properties": {
+        "image_id": "IMG_9802",
+        "estimated_angle": null,
+        "consistency_error": null,
+        "avg_matches_used": 0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.57856023311615,
+          50.64357572692177
+        ]
+      },
+      "properties": {
+        "image_id": "IMG_9803",
+        "estimated_angle": null,
+        "consistency_error": null,
+        "avg_matches_used": 0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.574032664299011,
+          50.63236203601491
+        ]
+      },
+      "properties": {
+        "image_id": "IMG_9807",
+        "estimated_angle": null,
+        "consistency_error": null,
+        "avg_matches_used": 0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.576146245002747,
+          50.639367504252846
+        ]
+      },
+      "properties": {
+        "image_id": "IMG_9822",
+        "estimated_angle": 140.02069387428128,
+        "consistency_error": 39.60353410395125,
+        "avg_matches_used": 126.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            5.576146245002747,
+            50.639367504252846
+          ],
+          [
+            5.576600377592456,
+            50.639023083441664
+          ]
+        ]
+      },
+      "properties": {
+        "image_id": "IMG_9822_direction",
+        "angle": 140.02069387428128
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          5.576001405715942,
+          50.64186118532649
+        ]
+      },
+      "properties": {
+        "image_id": "IMG_9823",
+        "estimated_angle": 334.72000186687296,
+        "consistency_error": 0.0,
+        "avg_matches_used": 130.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            5.576001405715942,
+            50.64186118532649
+          ],
+          [
+            5.575699552382718,
+            50.64226761310397
+          ]
+        ]
+      },
+      "properties": {
+        "image_id": "IMG_9823_direction",
+        "angle": 334.72000186687296
+      }
+    }
+  ]
+}

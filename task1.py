@@ -211,6 +211,14 @@ def retrieve_topk(db_ids, db_emb, q_ids, q_emb, db_meta, topk=5, estimate_topk=5
     """Retrieve top-k items and a Top-5 rank-medoid position estimate per query."""
     # cosine similarity to rank database items for each query
     sim = q_emb @ db_emb.T
+    # Ensure sim is 2D: shape should be [num_queries, num_database_items]
+    if sim.dim() == 0:
+        # Empty case - no queries or no database items
+        return {}
+    elif sim.dim() == 1:
+        # Single query case - shape [num_database_items] -> [1, num_database_items]
+        sim = sim.unsqueeze(0)
+    # Now sim is guaranteed to be 2D
     k = min(topk, sim.shape[1])
     results = {}
     method_name = f"rank_medoid_top{int(estimate_topk)}"

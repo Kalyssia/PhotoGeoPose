@@ -1,0 +1,23 @@
+pipeline_config:
+  task1_topk: 100
+  task2_min_matches: 100
+  user_mode: false
+  city: liege
+summary:
+  total_queries: 1088
+  task1_position_error_m:
+    mean: 489.7660483801226
+    median: 98.91827505241542
+  task1_recall:
+    '@1_50m': 0.47058823529411764
+    '@5_50m': 0.5248161764705882
+    '@10_50m': 0.5560661764705882
+  task2_angle_error_deg:
+    mean: 32.50530407784565
+    median: 11.401441322158917
+    consistency_error: 25.584251816859204
+  task2_angle_success:
+    success_rate: 0.69580650165165464
+    threshold_10deg: 0.47424042272126815
+    threshold_20deg: 0.6433289299867899
+    threshold_30deg: 0.7080581241743725

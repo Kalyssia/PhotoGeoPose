@@ -1,0 +1,23 @@
+pipeline_config:
+  task1_topk: 100
+  task2_min_matches: 100
+  user_mode: false
+  city: brussels
+summary:
+  total_queries: 5636
+  task1_position_error_m:
+    mean: 378.9092197909541
+    median: 30.733023359623594
+  task1_recall:
+    '@1_50m': 0.6079010561051604
+    '@5_50m': 0.7229650656054650
+    '@10_50m': 0.7598949804954304
+  task2_angle_error_deg:
+    mean: 40.081886355134614
+    median: 20.335986061917197
+    consistency_error: 37.30558161221756
+  task2_angle_success:
+    success_rate: 0.8287442304631546
+    threshold_10deg: 0.30862300748991744
+    threshold_20deg: 0.49491069713846747
+    threshold_30deg: 0.6109083925484924
