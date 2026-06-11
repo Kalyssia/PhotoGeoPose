@@ -123,8 +123,8 @@ def load_annotation_metadata(annotations_path, image_dir):
     }
 
 
-def save_json(path, data):
-    """Save a Python object as a formatted JSON file."""
+def save_json(data, path):
+    """ Save a Python object as a formatted JSON file. """
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", encoding="utf-8") as f:

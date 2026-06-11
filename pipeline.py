@@ -109,7 +109,7 @@ def run_task1(args, device):
 
     # Save Task 1 results
     task1_output = Path(args.output_dir) / f"task1_results_{args.city}.json"
-    save_json(str(task1_output), results)
+    save_json(results, str(task1_output))
     print(f"Saved Task 1 results to {task1_output}")
 
     embeddings_output = Path(args.output_dir) / "embeddings.pt"
@@ -197,7 +197,7 @@ def run_task2_on_queries(args, task1_results, db_meta, device, extractor, matche
 
     # Save Task 2 results
     task2_output = Path(args.output_dir) / f"task2_results_{args.city}.json"
-    save_json(str(task2_output), task2_results)
+    save_json(task2_results, str(task2_output))
     print(f"Saved Task 2 results to {task2_output}")
 
     return task2_results
@@ -517,7 +517,7 @@ def main():
 
         # Save results
         output_path = Path(args.output_dir) / "user_results.json"
-        save_json(str(output_path), results)
+        save_json(results, str(output_path))
         print(f"Saved user results to {output_path}")
 
         # Generate simplified YAML report

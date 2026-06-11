@@ -314,7 +314,7 @@ def main():
         estimate_topk=args.position_estimation_topk,
     )
 
-    save_json(args.output, results)
+    save_json(results, args.output)
 
     torch.save(
         {
