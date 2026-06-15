@@ -31,7 +31,18 @@ class DatasetBuilder:
         os.makedirs(self.output_dir, exist_ok=True)
         # Load city bounding boxes from configuration file
         with open(city_file, "r", encoding="utf-8") as f:
-            self.cities: dict[str, dict[str, float]] = json.load(f)
+            # Load all data from the file
+            data: dict[str, list[dict]] = json.load(f)
+        # Extract the cities from the continents
+        cities_data = defaultdict()
+        for continent, cities in data.items():
+            for city in cities:
+                cities_data[city["city"]] = city["coords"]
+        # Extract each city's bounding box and store it in a dictionary
+        for city_name, city_bb in cities_data.items():
+            if not all(k in city_bb for k in ["west", "south", "east", "north"]):
+                raise ValueError(f"City '{city_name}' is missing required bounding box keys.")
+        self.cities: dict[str, dict[str, float]] = cities_data
         self.limit_density: bool = limit_density
 
         ## Constants
@@ -287,14 +298,21 @@ def parse_args():
         help="'All' or the city to download images from (default: brussels)."
     )
     parser.add_argument(
+        "--city-file",
+        default="cities.json",
+        help="Path to the JSON file containing city bounding boxes (default: cities.json)."
+    )
+    parser.add_argument(
         "--output-dir",
         required=True,
         help="Directory to save the output (each city will be saved in a subdirectory with its name)."
     )
     parser.add_argument(
-        "--limit-density",
-        action="store_true",
-        help="Whether to limit the density of selected images (default: False)."
+        "--no-limit-density",
+        dest="limit_density",
+        action="store_false",
+        help="Disable limiting the density of selected images (default: enabled).",
+        default=True,
     )
     return parser.parse_args()
 
@@ -302,7 +320,7 @@ if __name__ == "__main__":
     args= parse_args()
     builder = DatasetBuilder(
         output_dir=args.output_dir,
-        city_file="cities.json",
+        city_file=args.city_file,
         limit_density=args.limit_density,
     )
     if args.city == "all":
