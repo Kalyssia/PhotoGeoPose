@@ -11,7 +11,7 @@ from torchvision import transforms
 from tqdm import tqdm
 
 import config
-from dataset.geo_triplet_dataset import AnnotationStore
+from geo_triplet_dataset import AnnotationStore
 from utils import haversine_m, load_annotation_metadata, save_json
 
 

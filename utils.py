@@ -109,7 +109,7 @@ def load_embeddings_metadata(embeddings_path):
 
 def load_annotation_metadata(annotations_path, image_dir):
     """Load annotation metadata and index it by image id."""
-    from dataset.geo_triplet_dataset import AnnotationStore
+    from geo_triplet_dataset import AnnotationStore
 
     store = AnnotationStore(annotations_path, image_dir)
     return {
