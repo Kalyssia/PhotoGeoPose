@@ -64,9 +64,9 @@ def extract_features_batch(paths, extractor, device, batch_size=8):
     """Extract SuperPoint features for a list of images.
 
     The LightGlue SuperPoint extractor only accepts single images
-    (batch dimension == 1), so this function loads all candidate images and
-    extracts their features in parallel using a thread pool. Returns a
-    dictionary mapping image path to a single-image feature dict.
+    (batch dimension == 1), so this function extracts features in parallel
+    using a thread pool. Images are loaded to the target device one at a time
+    inside each worker to avoid filling GPU memory with all candidates at once.
 
     `batch_size` here controls the number of parallel extraction workers.
     """
@@ -76,21 +76,11 @@ def extract_features_batch(paths, extractor, device, batch_size=8):
     if not paths:
         return features_dict
 
-    # Load images and filter invalid ones.
-    loaded = []
-    for path in paths:
-        if not os.path.exists(path):
-            continue
+    valid_paths = [p for p in paths if os.path.exists(p)]
+
+    def extract_single(path):
         try:
             tensor = utils.load_image(path).to(device)
-            loaded.append((path, tensor))
-        except Exception as e:
-            print(f"WARNING: Failed to load image {path}: {e}")
-
-    # Extract features in parallel using threads.
-    def extract_single(item):
-        path, tensor = item
-        try:
             with torch.no_grad():
                 features = extractor.extract(tensor)
             return path, features
@@ -99,8 +89,8 @@ def extract_features_batch(paths, extractor, device, batch_size=8):
             return None
 
     with ThreadPoolExecutor(max_workers=batch_size) as executor:
-        futures = [executor.submit(extract_single, item) for item in loaded]
-        for future in tqdm(as_completed(futures), total=len(futures), desc="Extracting candidate features", leave=False):
+        futures = [executor.submit(extract_single, path) for path in valid_paths]
+        for future in tqdm(as_completed(futures), total=len(futures), desc="Extracting features", leave=False):
             result = future.result()
             if result is not None:
                 path, features = result
@@ -148,6 +138,9 @@ def estimate_query_orientation(
     output_dir=None,
     query_id=None,
     candidate_batch_size=1,
+    candidate_features_cache=None,
+    query_features_cache=None,
+    query_cache_lock=None,
 ):
     """Estimate query orientation using LightGlue matches against candidates."""
     query_img = cv2.imread(query_path)
@@ -163,22 +156,59 @@ def estimate_query_orientation(
         [0, 0, 1]
     ])
 
-    # Extract features from query image once
+    # Extract or load cached query features
+    query_features = None
+    query_viz_image = None
     try:
-        query_tensor = utils.load_image(query_path).to(device)
-        query_features = extractor.extract(query_tensor)
-        query_viz_image = utils.load_image(query_path) if save_visualizations else None
+        if query_features_cache is not None and query_path in query_features_cache:
+            query_features = {
+                k: v.to(device) if isinstance(v, torch.Tensor) else v
+                for k, v in query_features_cache[query_path].items()
+            }
+            if save_visualizations:
+                query_viz_image = utils.load_image(query_path)
+        else:
+            query_tensor = utils.load_image(query_path).to(device)
+            query_features = extractor.extract(query_tensor)
+            if save_visualizations:
+                query_viz_image = utils.load_image(query_path)
+            if query_features_cache is not None:
+                cpu_features = {
+                    k: v.cpu() if isinstance(v, torch.Tensor) else v
+                    for k, v in query_features.items()
+                }
+                if query_cache_lock is not None:
+                    with query_cache_lock:
+                        query_features_cache[query_path] = cpu_features
+                else:
+                    query_features_cache[query_path] = cpu_features
     except Exception as e:
         print(f"WARNING: Failed to extract features from query: {e}")
         return None, None, [], 0
 
-    # Batch extract features for all candidates.
-    candidate_features = extract_features_batch(
-        paths=candidate_paths,
-        extractor=extractor,
-        device=device,
-        batch_size=candidate_batch_size,
-    )
+    # Build candidate features, using cache when available.
+    candidate_features = {}
+    if candidate_features_cache:
+        cached_paths = [p for p in candidate_paths if p in candidate_features_cache]
+        for p in cached_paths:
+            candidate_features[p] = candidate_features_cache[p]
+
+        missing_paths = [p for p in candidate_paths if p not in candidate_features_cache]
+        if missing_paths:
+            missing_features = extract_features_batch(
+                paths=missing_paths,
+                extractor=extractor,
+                device=device,
+                batch_size=candidate_batch_size,
+            )
+            candidate_features.update(missing_features)
+    else:
+        candidate_features = extract_features_batch(
+            paths=candidate_paths,
+            extractor=extractor,
+            device=device,
+            batch_size=candidate_batch_size,
+        )
 
     results = []
     used_candidates = []  # Candidates used for angle estimation
@@ -189,6 +219,11 @@ def estimate_query_orientation(
             continue
 
         cand_features = candidate_features[cand_path]
+        # Ensure cached features (possibly on CPU) are on the target device
+        cand_features = {
+            k: v.to(device) if isinstance(v, torch.Tensor) else v
+            for k, v in cand_features.items()
+        }
 
         pts0, pts1, match_count = compute_matches(query_features, cand_features, matcher)
 
@@ -261,6 +296,8 @@ def estimate_reference_orientation(
     images_dir,
     metadata_path,
     candidate_batch_size=1,
+    candidate_features_cache=None,
+    query_features_cache=None,
 ):
     """Estimate reference image orientation using the reusable estimate_query_orientation function."""
     metadata_angles = get_metadata_angles(metadata_path)
@@ -290,6 +327,8 @@ def estimate_reference_orientation(
         output_dir=os.path.dirname(OUTPUT_MANY_MATCHES_DIR),
         query_id=str(ref_id),
         candidate_batch_size=candidate_batch_size,
+        candidate_features_cache=candidate_features_cache,
+        query_features_cache=query_features_cache,
     )
 
     return reference_path, estimated_angle, consistency_error, results

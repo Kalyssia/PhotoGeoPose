@@ -12,6 +12,7 @@ import os
 import sys
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
+from threading import Lock
 
 import numpy as np
 import torch
@@ -26,7 +27,7 @@ from task1 import (
     retrieve_topk,
 )
 
-from task2 import estimate_query_orientation
+from task2 import estimate_query_orientation, extract_features_batch
 
 from evaluate_task1_results import evaluate as evaluate_task1
 
@@ -128,7 +129,123 @@ def run_task1(args, device):
     return results, db_meta, query_meta
 
 
-def run_task2_on_queries(args, task1_results, db_meta, device, extractor, matcher):
+def _move_cache_to_gpu(cache, device, mode):
+    """Move a CPU feature cache to GPU depending on mode (auto/true/false)."""
+    if mode == "false" or device.type != "cuda":
+        return cache
+
+    if mode == "true":
+        print("Moving feature cache to GPU...")
+        try:
+            return {
+                path: {
+                    k: v.to(device) if isinstance(v, torch.Tensor) else v
+                    for k, v in feat.items()
+                }
+                for path, feat in cache.items()
+            }
+        except (RuntimeError, torch.cuda.OutOfMemoryError) as e:
+            print(f"ERROR: Could not fit cache on GPU: {e}")
+            raise
+
+    # mode == "auto": estimate size and try to fit
+    total_bytes = 0
+    for feat in cache.values():
+        for v in feat.values():
+            if isinstance(v, torch.Tensor):
+                total_bytes += v.element_size() * v.nelement()
+
+    total_memory = torch.cuda.get_device_properties(device).total_memory
+    allocated = torch.cuda.memory_allocated(device)
+    reserved = torch.cuda.memory_reserved(device)
+    available = total_memory - allocated - reserved
+
+    if total_bytes < available * 0.8:
+        print(f"Moving feature cache to GPU ({total_bytes / 1e9:.2f} GB / {available / 1e9:.2f} GB available)...")
+        try:
+            return {
+                path: {
+                    k: v.to(device) if isinstance(v, torch.Tensor) else v
+                    for k, v in feat.items()
+                }
+                for path, feat in cache.items()
+            }
+        except (RuntimeError, torch.cuda.OutOfMemoryError) as e:
+            print(f"WARNING: Cache does not fit on GPU: {e}. Keeping on CPU.")
+            torch.cuda.empty_cache()
+            return cache
+    else:
+        print(f"Cache too large for GPU ({total_bytes / 1e9:.2f} GB needed, {available / 1e9:.2f} GB available). Keeping on CPU.")
+        return cache
+
+
+def build_candidate_feature_cache(args, task1_results, device, extractor):
+    """Build or load a cache of SuperPoint features for all unique candidates."""
+
+    cache_path = args.task2_cache_path
+    if not cache_path:
+        cache_path = str(Path(args.output_dir) / f"task2_features_cache_{args.city}.pt")
+
+    cache_path = Path(cache_path)
+
+    # Try to load existing cache (always on CPU first; moved to GPU if requested)
+    if cache_path.exists():
+        print(f"Loading candidate feature cache from {cache_path}")
+        try:
+            cache = torch.load(str(cache_path), map_location="cpu")
+            print(f"Loaded features for {len(cache)} candidates")
+            return _move_cache_to_gpu(cache, device, args.task2_cache_on_gpu)
+        except Exception as e:
+            print(f"WARNING: Failed to load cache: {e}. Rebuilding.")
+
+    # Collect unique candidate IDs
+    candidate_ids = set()
+    for result in task1_results.values():
+        for item in result.get("topk", []):
+            candidate_ids.add(int(item["id"]))
+
+    candidate_paths = []
+    for cand_id in candidate_ids:
+        cand_path = Path(args.image_dir) / f"{cand_id}.jpg"
+        if cand_path.exists():
+            candidate_paths.append(str(cand_path))
+
+    print(f"Building feature cache for {len(candidate_paths)} unique candidates...")
+    features = extract_features_batch(
+        paths=candidate_paths,
+        extractor=extractor,
+        device=device,
+        batch_size=args.task2_batch_size,
+    )
+
+    # Move features to CPU to keep GPU memory free for matching
+    cache = {}
+    for cand_path in candidate_paths:
+        if cand_path in features:
+            cache[cand_path] = {
+                k: v.cpu() if isinstance(v, torch.Tensor) else v
+                for k, v in features[cand_path].items()
+            }
+
+    # Save cache
+    try:
+        cache_path.parent.mkdir(parents=True, exist_ok=True)
+        torch.save(cache, str(cache_path))
+        print(f"Saved candidate feature cache to {cache_path}")
+    except Exception as e:
+        print(f"WARNING: Failed to save cache: {e}")
+
+    # Release any GPU memory held by the extraction process
+    if device.type == "cuda":
+        torch.cuda.empty_cache()
+
+    # Move cache to GPU if requested and it fits
+    cache = _move_cache_to_gpu(cache, device, args.task2_cache_on_gpu)
+
+    return cache
+
+
+def run_task2_on_queries(args, task1_results, db_meta, device, extractor, matcher, candidate_features_cache=None):
     """Run Task 2 angle estimation on all queries in parallel."""
 
     print("\nTASK 2: LightGlue Angle Estimation\n")
@@ -140,6 +257,19 @@ def run_task2_on_queries(args, task1_results, db_meta, device, extractor, matche
     if args.max_queries:
         items = items[:args.max_queries]
         print(f"Processing only first {args.max_queries} queries (test mode)")
+
+    # Query feature cache (loaded from disk if available, updated in-memory, saved at the end)
+    query_cache_path = Path(args.task2_query_cache_path) if args.task2_query_cache_path else Path(args.output_dir) / f"task2_query_features_cache_{args.city}.pt"
+    query_features_cache = {}
+    if query_cache_path.exists():
+        print(f"Loading query feature cache from {query_cache_path}")
+        try:
+            query_features_cache = torch.load(str(query_cache_path), map_location="cpu")
+            print(f"Loaded features for {len(query_features_cache)} queries")
+        except Exception as e:
+            print(f"WARNING: Failed to load query feature cache: {e}. Starting fresh.")
+    query_features_cache = _move_cache_to_gpu(query_features_cache, device, args.task2_cache_on_gpu)
+    query_cache_lock = Lock()
 
     def process_query(query_item):
         qid, result = query_item
@@ -156,8 +286,8 @@ def run_task2_on_queries(args, task1_results, db_meta, device, extractor, matche
                 "match_results": [],
             }
 
-        # Get candidate images from Task 1 top-k
-        topk_items = result.get("topk", [])
+        # Get candidate images from Task 1 top-k (limit to task2_topk for speed)
+        topk_items = result.get("topk", [])[:args.task2_topk]
         candidate_paths = []
         candidate_angles = []
 
@@ -187,6 +317,9 @@ def run_task2_on_queries(args, task1_results, db_meta, device, extractor, matche
                 output_dir=args.output_dir,
                 query_id=str(qid_int),
                 candidate_batch_size=args.task2_batch_size,
+                candidate_features_cache=candidate_features_cache,
+                query_features_cache=query_features_cache,
+                query_cache_lock=query_cache_lock,
             )
         except Exception as e:
             print(f"ERROR: Task 2 failed for query {qid_int}: {e}")
@@ -219,6 +352,21 @@ def run_task2_on_queries(args, task1_results, db_meta, device, extractor, matche
                 task2_results[qid_int] = result_dict
             except Exception as e:
                 print(f"ERROR: Unexpected query processing failure: {e}")
+
+    # Save query feature cache for future runs
+    try:
+        query_cache_path.parent.mkdir(parents=True, exist_ok=True)
+        cpu_query_cache = {
+            path: {
+                k: v.cpu() if isinstance(v, torch.Tensor) else v
+                for k, v in feat.items()
+            }
+            for path, feat in query_features_cache.items()
+        }
+        torch.save(cpu_query_cache, str(query_cache_path))
+        print(f"Saved query feature cache to {query_cache_path}")
+    except Exception as e:
+        print(f"WARNING: Failed to save query feature cache: {e}")
 
     # Save Task 2 results
     task2_output = Path(args.output_dir) / f"task2_results_{args.city}.json"
@@ -268,6 +416,19 @@ def run_user_mode(args, device, extractor, matcher):
     db_meta = checkpoint.get("db_meta", {})
     print(f"Loaded {len(db_ids)} database embeddings")
 
+    # Query feature cache for user images (loaded from disk, updated in-memory, saved at the end)
+    query_cache_path = Path(args.task2_query_cache_path) if args.task2_query_cache_path else Path(args.output_dir) / f"task2_query_features_cache_user.pt"
+    query_features_cache = {}
+    if query_cache_path.exists():
+        print(f"Loading query feature cache from {query_cache_path}")
+        try:
+            query_features_cache = torch.load(str(query_cache_path), map_location="cpu")
+            print(f"Loaded features for {len(query_features_cache)} queries")
+        except Exception as e:
+            print(f"WARNING: Failed to load query feature cache: {e}. Starting fresh.")
+    query_features_cache = _move_cache_to_gpu(query_features_cache, device, args.task2_cache_on_gpu)
+    query_cache_lock = Lock()
+
     # Process each user image independently (in parallel when possible)
     results = {}
 
@@ -296,8 +457,8 @@ def run_user_mode(args, device, extractor, matcher):
             estimate_topk=args.position_estimation_topk,
         )
 
-        # Get top-k candidates for Task 2
-        topk_items = task1_result.get(q_ids[0], {}).get("topk", [])
+        # Get top-k candidates for Task 2 (limit to task2_topk for speed)
+        topk_items = task1_result.get(q_ids[0], {}).get("topk", [])[:args.task2_topk]
         position_estimate = task1_result.get(q_ids[0], {}).get("position_estimates", {}).get("rank_medoid_top5")
 
         # Prepare candidates for Task 2
@@ -324,6 +485,8 @@ def run_user_mode(args, device, extractor, matcher):
                 output_dir=args.output_dir,
                 query_id=query_id,
                 candidate_batch_size=args.task2_batch_size,
+                query_features_cache=query_features_cache,
+                query_cache_lock=query_cache_lock,
             )
         except Exception as e:
             print(f"ERROR: Task 2 failed for user image {query_id}: {e}")
@@ -363,6 +526,21 @@ def run_user_mode(args, device, extractor, matcher):
                 results[query_id] = result_dict
             except Exception as e:
                 print(f"ERROR: Unexpected user image processing failure: {e}")
+
+    # Save query feature cache for future runs
+    try:
+        query_cache_path.parent.mkdir(parents=True, exist_ok=True)
+        cpu_query_cache = {
+            path: {
+                k: v.cpu() if isinstance(v, torch.Tensor) else v
+                for k, v in feat.items()
+            }
+            for path, feat in query_features_cache.items()
+        }
+        torch.save(cpu_query_cache, str(query_cache_path))
+        print(f"Saved query feature cache to {query_cache_path}")
+    except Exception as e:
+        print(f"WARNING: Failed to save query feature cache: {e}")
 
     return results
 
@@ -540,8 +718,12 @@ def main():
     parser.add_argument("--min-matches", type=int, default=config.PIPELINE_TASK2_MIN_MATCHES, help="Minimum LightGlue matches for angle estimation")
     parser.add_argument("--focal-length-scale", type=float, default=config.PIPELINE_TASK2_FOCAL_LENGTH_SCALE, help="Focal length scale factor")
     parser.add_argument("--save-visualizations", action="store_true", default=config.PIPELINE_TASK2_SAVE_VISUALIZATIONS, help="Save LightGlue match visualizations")
+    parser.add_argument("--task2-topk", type=int, default=config.PIPELINE_TASK2_TOPK, help="Number of top-k Task 1 candidates to use for Task 2 (1 = best only)")
     parser.add_argument("--task2-batch-size", type=int, default=config.PIPELINE_TASK2_BATCH_SIZE, help="Parallel workers for candidate feature extraction (LightGlue only accepts single images)")
     parser.add_argument("--task2-num-workers", type=int, default=config.PIPELINE_TASK2_NUM_WORKERS, help="Parallel workers for query processing (use 1 if visualizations are enabled)")
+    parser.add_argument("--task2-cache-path", default=config.PIPELINE_TASK2_CACHE_PATH, help="Path to load/save pre-computed candidate feature cache")
+    parser.add_argument("--task2-query-cache-path", default=config.PIPELINE_TASK2_QUERY_CACHE_PATH, help="Path to load/save pre-computed query feature cache")
+    parser.add_argument("--task2-cache-on-gpu", default=config.PIPELINE_TASK2_CACHE_ON_GPU, choices=["auto", "true", "false"], help="Store feature cache on GPU if possible (auto), always (true), or never (false)")
     parser.add_argument("--max-queries", type=int, default=config.PIPELINE_MAX_QUERIES, help="Max queries to process (for testing, default: all)")
 
     # City selection (for report naming)
@@ -613,8 +795,14 @@ def main():
         extractor = SuperPoint(max_num_keypoints=2048).eval().to(device)
         matcher = LightGlue(features="superpoint").eval().to(device)
 
+        # Build candidate feature cache once for all queries
+        candidate_features_cache = build_candidate_feature_cache(
+            args, task1_results, device, extractor
+        )
+
         task2_results = run_task2_on_queries(
-            args, task1_results, db_meta, device, extractor, matcher
+            args, task1_results, db_meta, device, extractor, matcher,
+            candidate_features_cache=candidate_features_cache,
         )
 
         # Generate YAML evaluation report
