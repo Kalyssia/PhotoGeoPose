@@ -10,6 +10,7 @@ import argparse
 import json
 import os
 import sys
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
 import numpy as np
@@ -128,7 +129,7 @@ def run_task1(args, device):
 
 
 def run_task2_on_queries(args, task1_results, db_meta, device, extractor, matcher):
-    """Run Task 2 angle estimation on all queries."""
+    """Run Task 2 angle estimation on all queries in parallel."""
 
     print("\nTASK 2: LightGlue Angle Estimation\n")
 
@@ -140,21 +141,20 @@ def run_task2_on_queries(args, task1_results, db_meta, device, extractor, matche
         items = items[:args.max_queries]
         print(f"Processing only first {args.max_queries} queries (test mode)")
 
-    for qid, result in tqdm(items, desc="Processing queries"):
+    def process_query(query_item):
+        qid, result = query_item
         qid_int = int(qid)
 
         # Get query image path
         query_path = Path(args.image_dir) / f"{qid_int}.jpg"
         if not query_path.exists():
-            print(f"WARNING: Query image not found: {query_path}")
-            task2_results[qid_int] = {
+            return qid_int, {
                 "query_id": qid_int,
                 "error": "query_image_not_found",
                 "estimated_angle": None,
                 "consistency_error": None,
                 "match_results": [],
             }
-            continue
 
         # Get candidate images from Task 1 top-k
         topk_items = result.get("topk", [])
@@ -173,27 +173,52 @@ def run_task2_on_queries(args, task1_results, db_meta, device, extractor, matche
                     candidate_angles.append(None)
 
         # Run Task 2 angle estimation
-        estimated_angle, consistency_error, match_results, avg_matches_used = estimate_query_orientation(
-            query_path=str(query_path),
-            candidate_paths=candidate_paths,
-            candidate_angles=candidate_angles,
-            device=device,
-            extractor=extractor,
-            matcher=matcher,
-            min_matches=args.min_matches,
-            focal_length_scale=args.focal_length_scale,
-            save_visualizations=args.save_visualizations,
-            output_dir=args.output_dir,
-            query_id=str(qid_int),
-        )
+        try:
+            estimated_angle, consistency_error, match_results, avg_matches_used = estimate_query_orientation(
+                query_path=str(query_path),
+                candidate_paths=candidate_paths,
+                candidate_angles=candidate_angles,
+                device=device,
+                extractor=extractor,
+                matcher=matcher,
+                min_matches=args.min_matches,
+                focal_length_scale=args.focal_length_scale,
+                save_visualizations=args.save_visualizations,
+                output_dir=args.output_dir,
+                query_id=str(qid_int),
+                candidate_batch_size=args.task2_batch_size,
+            )
+        except Exception as e:
+            print(f"ERROR: Task 2 failed for query {qid_int}: {e}")
+            return qid_int, {
+                "query_id": qid_int,
+                "error": str(e),
+                "estimated_angle": None,
+                "consistency_error": None,
+                "match_results": [],
+            }
 
-        task2_results[qid_int] = {
+        return qid_int, {
             "query_id": qid_int,
             "estimated_angle": estimated_angle,
             "consistency_error": consistency_error,
             "avg_matches_used": avg_matches_used,
             "match_results": match_results,
         }
+
+    # Use a single worker when saving visualizations because matplotlib is not
+    # thread-safe; otherwise parallelize across queries.
+    num_workers = 1 if args.save_visualizations else args.task2_num_workers
+    print(f"Processing {len(items)} queries with {num_workers} worker(s)...")
+
+    with ThreadPoolExecutor(max_workers=num_workers) as executor:
+        futures = [executor.submit(process_query, item) for item in items]
+        for future in tqdm(as_completed(futures), total=len(futures), desc="Processing queries"):
+            try:
+                qid_int, result_dict = future.result()
+                task2_results[qid_int] = result_dict
+            except Exception as e:
+                print(f"ERROR: Unexpected query processing failure: {e}")
 
     # Save Task 2 results
     task2_output = Path(args.output_dir) / f"task2_results_{args.city}.json"
@@ -243,10 +268,10 @@ def run_user_mode(args, device, extractor, matcher):
     db_meta = checkpoint.get("db_meta", {})
     print(f"Loaded {len(db_ids)} database embeddings")
 
-    # Process each user image independently
+    # Process each user image independently (in parallel when possible)
     results = {}
 
-    for query_img in tqdm(user_images, desc="Processing user images"):
+    def process_user_image(query_img):
         query_id = query_img.stem
 
         # Compute query embedding
@@ -285,21 +310,36 @@ def run_user_mode(args, device, extractor, matcher):
             candidate_angles.append(db_meta.get(cand_id, {}).get("angle"))
 
         # Run Task 2: Estimate angle
-        estimated_angle, consistency_error, match_results, avg_matches_used = estimate_query_orientation(
-            query_path=str(query_img),
-            candidate_paths=candidate_paths,
-            candidate_angles=candidate_angles,
-            device=device,
-            extractor=extractor,
-            matcher=matcher,
-            min_matches=args.min_matches,
-            focal_length_scale=args.focal_length_scale,
-            save_visualizations=args.save_visualizations,
-            output_dir=args.output_dir,
-            query_id=query_id,
-        )
+        try:
+            estimated_angle, consistency_error, match_results, avg_matches_used = estimate_query_orientation(
+                query_path=str(query_img),
+                candidate_paths=candidate_paths,
+                candidate_angles=candidate_angles,
+                device=device,
+                extractor=extractor,
+                matcher=matcher,
+                min_matches=args.min_matches,
+                focal_length_scale=args.focal_length_scale,
+                save_visualizations=args.save_visualizations,
+                output_dir=args.output_dir,
+                query_id=query_id,
+                candidate_batch_size=args.task2_batch_size,
+            )
+        except Exception as e:
+            print(f"ERROR: Task 2 failed for user image {query_id}: {e}")
+            return query_id, {
+                "query_id": query_id,
+                "query_path": str(query_img),
+                "error": str(e),
+                "position_estimate": position_estimate,
+                "estimated_angle": None,
+                "consistency_error": None,
+                "avg_matches_used": 0,
+                "match_results": [],
+                "topk": topk_items,
+            }
 
-        results[query_id] = {
+        return query_id, {
             "query_id": query_id,
             "query_path": str(query_img),
             "position_estimate": position_estimate,
@@ -309,6 +349,20 @@ def run_user_mode(args, device, extractor, matcher):
             "match_results": match_results,
             "topk": topk_items,
         }
+
+    # Use a single worker when saving visualizations because matplotlib is not
+    # thread-safe; otherwise parallelize across user images.
+    num_workers = 1 if args.save_visualizations else args.task2_num_workers
+    print(f"Processing {len(user_images)} user images with {num_workers} worker(s)...")
+
+    with ThreadPoolExecutor(max_workers=num_workers) as executor:
+        futures = [executor.submit(process_user_image, query_img) for query_img in user_images]
+        for future in tqdm(as_completed(futures), total=len(futures), desc="Processing user images"):
+            try:
+                query_id, result_dict = future.result()
+                results[query_id] = result_dict
+            except Exception as e:
+                print(f"ERROR: Unexpected user image processing failure: {e}")
 
     return results
 
@@ -486,6 +540,8 @@ def main():
     parser.add_argument("--min-matches", type=int, default=config.PIPELINE_TASK2_MIN_MATCHES, help="Minimum LightGlue matches for angle estimation")
     parser.add_argument("--focal-length-scale", type=float, default=config.PIPELINE_TASK2_FOCAL_LENGTH_SCALE, help="Focal length scale factor")
     parser.add_argument("--save-visualizations", action="store_true", default=config.PIPELINE_TASK2_SAVE_VISUALIZATIONS, help="Save LightGlue match visualizations")
+    parser.add_argument("--task2-batch-size", type=int, default=config.PIPELINE_TASK2_BATCH_SIZE, help="Parallel workers for candidate feature extraction (LightGlue only accepts single images)")
+    parser.add_argument("--task2-num-workers", type=int, default=config.PIPELINE_TASK2_NUM_WORKERS, help="Parallel workers for query processing (use 1 if visualizations are enabled)")
     parser.add_argument("--max-queries", type=int, default=config.PIPELINE_MAX_QUERIES, help="Max queries to process (for testing, default: all)")
 
     # City selection (for report naming)

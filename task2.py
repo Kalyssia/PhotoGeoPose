@@ -6,6 +6,7 @@ import os
 import matplotlib.pyplot as plt
 from lightglue import LightGlue, SuperPoint, utils, viz2d
 from scipy.spatial.transform import Rotation
+from tqdm import tqdm
 
 from utils import angle_diff_deg, normalize_angle, circular_mean_deg, mean_circular_error
 import config
@@ -58,6 +59,55 @@ def compute_matches(ref_features, other_features, matcher):
     pts1 = feat1["keypoints"][matches[..., 1]].cpu().numpy()
     return pts0, pts1, match_count
 
+
+def extract_features_batch(paths, extractor, device, batch_size=8):
+    """Extract SuperPoint features for a list of images.
+
+    The LightGlue SuperPoint extractor only accepts single images
+    (batch dimension == 1), so this function loads all candidate images and
+    extracts their features in parallel using a thread pool. Returns a
+    dictionary mapping image path to a single-image feature dict.
+
+    `batch_size` here controls the number of parallel extraction workers.
+    """
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+
+    features_dict = {}
+    if not paths:
+        return features_dict
+
+    # Load images and filter invalid ones.
+    loaded = []
+    for path in paths:
+        if not os.path.exists(path):
+            continue
+        try:
+            tensor = utils.load_image(path).to(device)
+            loaded.append((path, tensor))
+        except Exception as e:
+            print(f"WARNING: Failed to load image {path}: {e}")
+
+    # Extract features in parallel using threads.
+    def extract_single(item):
+        path, tensor = item
+        try:
+            with torch.no_grad():
+                features = extractor.extract(tensor)
+            return path, features
+        except Exception as e:
+            print(f"WARNING: Failed to extract features from {path}: {e}")
+            return None
+
+    with ThreadPoolExecutor(max_workers=batch_size) as executor:
+        futures = [executor.submit(extract_single, item) for item in loaded]
+        for future in tqdm(as_completed(futures), total=len(futures), desc="Extracting candidate features", leave=False):
+            result = future.result()
+            if result is not None:
+                path, features = result
+                features_dict[path] = features
+
+    return features_dict
+
 def estimate_relative_yaw(pts0, pts1, K):
     """Estimates the relative yaw angle (in degrees) from matched point pairs."""
     if len(pts0) < 5:
@@ -97,6 +147,7 @@ def estimate_query_orientation(
     save_visualizations=False,
     output_dir=None,
     query_id=None,
+    candidate_batch_size=1,
 ):
     """Estimate query orientation using LightGlue matches against candidates."""
     query_img = cv2.imread(query_path)
@@ -121,19 +172,23 @@ def estimate_query_orientation(
         print(f"WARNING: Failed to extract features from query: {e}")
         return None, None, [], 0
 
+    # Batch extract features for all candidates.
+    candidate_features = extract_features_batch(
+        paths=candidate_paths,
+        extractor=extractor,
+        device=device,
+        batch_size=candidate_batch_size,
+    )
+
     results = []
     used_candidates = []  # Candidates used for angle estimation
     visualization_data = []  # Store for saving visualizations
 
     for cand_path, cand_angle in zip(candidate_paths, candidate_angles):
-        if not os.path.exists(cand_path):
+        if cand_path not in candidate_features:
             continue
 
-        try:
-            cand_tensor = utils.load_image(cand_path).to(device)
-            cand_features = extractor.extract(cand_tensor)
-        except Exception:
-            continue
+        cand_features = candidate_features[cand_path]
 
         pts0, pts1, match_count = compute_matches(query_features, cand_features, matcher)
 
@@ -158,7 +213,7 @@ def estimate_query_orientation(
                 })
                 # Store visualization data
                 if save_visualizations and query_viz_image is not None:
-                    visualization_data.append((pts0, pts1, match_count, cand_path, cand_tensor))
+                    visualization_data.append((pts0, pts1, match_count, cand_path))
             elif yaw is not None:
                 # No ground truth angle available (user mode)
                 result["relative_yaw"] = yaw
@@ -170,7 +225,7 @@ def estimate_query_orientation(
                     "matches": match_count,
                 })
                 if save_visualizations and query_viz_image is not None:
-                    visualization_data.append((pts0, pts1, match_count, cand_path, cand_tensor))
+                    visualization_data.append((pts0, pts1, match_count, cand_path))
         else:
             results.append(result)
 
@@ -178,9 +233,10 @@ def estimate_query_orientation(
     if save_visualizations and output_dir and visualization_data:
         viz_dir = os.path.join(output_dir, "visualizations")
         os.makedirs(viz_dir, exist_ok=True)
-        for pts0, pts1, match_count, cand_path, cand_tensor in visualization_data:
+        for pts0, pts1, match_count, cand_path in visualization_data:
             out_name = f"{query_id}_{os.path.splitext(os.path.basename(cand_path))[0]}_matches.jpg"
             save_path = os.path.join(viz_dir, out_name)
+            cand_tensor = utils.load_image(cand_path)
             save_match_visualization(query_viz_image, cand_tensor, pts0, pts1, match_count, save_path)
         print(f"Saved {len(visualization_data)} visualizations to {viz_dir}")
 
@@ -200,7 +256,12 @@ def estimate_query_orientation(
 
     return estimated_angle, consistency_error, results, avg_matches_used
 
-def estimate_reference_orientation(reference_path, images_dir, metadata_path):
+def estimate_reference_orientation(
+    reference_path,
+    images_dir,
+    metadata_path,
+    candidate_batch_size=1,
+):
     """Estimate reference image orientation using the reusable estimate_query_orientation function."""
     metadata_angles = get_metadata_angles(metadata_path)
     candidate_images = get_candidate_images(images_dir, reference_path)
@@ -228,6 +289,7 @@ def estimate_reference_orientation(reference_path, images_dir, metadata_path):
         save_visualizations=True,
         output_dir=os.path.dirname(OUTPUT_MANY_MATCHES_DIR),
         query_id=str(ref_id),
+        candidate_batch_size=candidate_batch_size,
     )
 
     return reference_path, estimated_angle, consistency_error, results

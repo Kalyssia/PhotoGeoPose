@@ -1,6 +1,7 @@
 """Centralized default configuration for Task 1 pipeline scripts."""
 
-IMAGE_DIR = "images"
+DEFAULT_CITY = "Brussels"
+IMAGE_DIR = f"dataset/{DEFAULT_CITY}/images"
 OUTPUT_DIR = "outputs"
 
 # Shared
@@ -14,8 +15,8 @@ DISTANCE_THRESHOLD_M = 50.0
 ANGLE_THRESHOLD_DEG = None
 
 # task1.py defaults
-TASK1_ANNOTATIONS_DB = "dataset/splits/annotations_train.json"
-TASK1_ANNOTATIONS_QUERY = "dataset/splits/annotations_val.json"
+TASK1_ANNOTATIONS_DB = f"dataset/{DEFAULT_CITY}/metadata_train.json"
+TASK1_ANNOTATIONS_QUERY = f"dataset/{DEFAULT_CITY}/metadata_val.json"
 TASK1_TOPK = 10
 TASK1_OUTPUT = TOPK_RESULTS_PATH
 TASK1_CHECKPOINT = None
@@ -43,8 +44,8 @@ EVAL_DISTANCE_THRESHOLD_M = DISTANCE_THRESHOLD_M
 EVAL_ANGLE_THRESHOLD_DEG = ANGLE_THRESHOLD_DEG
 
 # dataset/split_data.py defaults
-SPLIT_INPUT_METADATA = f"{IMAGE_DIR}/metadata.json"
-SPLIT_OUTPUT_DIR = "dataset/splits"
+SPLIT_INPUT_METADATA = f"dataset/{DEFAULT_CITY}/metadata.json"
+SPLIT_OUTPUT_DIR = f"dataset/{DEFAULT_CITY}/splits"
 SPLIT_VAL_RATIO = 0.2
 SPLIT_SEED = 42
 
@@ -63,6 +64,8 @@ PIPELINE_POSITION_ESTIMATION_TOPK = 5
 PIPELINE_TASK2_MIN_MATCHES = 100
 PIPELINE_TASK2_FOCAL_LENGTH_SCALE = 1.0
 PIPELINE_TASK2_SAVE_VISUALIZATIONS = False
+PIPELINE_TASK2_BATCH_SIZE = 4  # Parallel workers for candidate feature extraction
+PIPELINE_TASK2_NUM_WORKERS = 2  # Parallel workers for query processing in Task2
 PIPELINE_MAX_QUERIES = None  # Limit for testing (None = all queries)
 PIPELINE_CITY = "brussels"
 PIPELINE_USER_IMAGES = False

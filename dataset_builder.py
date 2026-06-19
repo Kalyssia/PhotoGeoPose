@@ -15,7 +15,7 @@ MAX_PER_SEQ = 10            # Maximum number of images from the same sequence
 MAX_CONCURRENT_DL = 20      # Maximum number of concurrent downloads
 URL_BATCH_SIZE = 50         # Number of URLs to fetch in one batch from the API
 IMAGE_SIZE: str = "1024"    # Image size to download
-VAL_RATIO = 0.8             # Ratio of validation data in the final split
+VAL_RATIO = 0.2             # Ratio of validation data in the final split
 SEED = 42                   # Random seed for reproducibility
 
 class DatasetBuilder:
@@ -294,7 +294,6 @@ def parse_args():
     parser.add_argument(
         "--city",
         default="all",
-        type=str.lower,
         help="'All' or the city to download images from (default: brussels)."
     )
     parser.add_argument(
